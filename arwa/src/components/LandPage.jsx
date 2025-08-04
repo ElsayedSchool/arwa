@@ -5,7 +5,7 @@ import { OrdersPage } from "./orders/OrdersPage";
 import { CategoriesPage } from "./categories/CategoriesPage";
 import { ProfitsPage } from "./profits/ProfitsPage";
 import { AnalyticsPage } from "./analytics/AnalyticsPage";
-import { ReviseOrdersPage } from "./reviews/ReviewProductsPage";
+import { ReviewOrdersPage } from "./reviews/ReviewProductsPage";
 import { DeliveriesPage } from "./deliveries/DeliveriesPage";
 import {
   Users,
@@ -59,7 +59,7 @@ const LandPage = ({ userRole = "admin" }) => {
     return <AnalyticsPage onBack={() => setCurrentPage("dashboard")} />;
   }
   if (currentPage === "reviews") {
-    return <ReviseOrdersPage onBack={() => setCurrentPage("dashboard")} />;
+    return <ReviewOrdersPage onBack={() => setCurrentPage("dashboard")} />;
   }
 
   return (
