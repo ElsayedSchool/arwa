@@ -109,6 +109,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Manage Orders */}
           <button
+            disabled={true}
             onClick={() => setCurrentPage("orders")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
@@ -123,6 +124,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Revise Orders */}
           <button
+            disabled={true}
             onClick={() => setCurrentPage("reviews")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
@@ -137,6 +139,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Categories Management */}
           <button
+            disabled={true}
             onClick={() => setCurrentPage("categories")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
@@ -151,6 +154,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Daily Profits */}
           <button
+            disabled={true}
             onClick={() => setCurrentPage("profits")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
@@ -165,6 +169,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Analytics */}
           <button
+            disabled={true}
             onClick={() => setCurrentPage("analytics")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
@@ -176,21 +181,13 @@ const LandPage = ({ userRole = "admin" }) => {
             </div>
             <p className="text-gray-600">تحليل البيانات والتقارير المفصلة</p>
           </button>
-
-          {/* Inventory Management */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center mb-4">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-              <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                إدارة المخزون
-              </h3>
-            </div>
-            <p className="text-gray-600">متابعة المخزون والكميات المتاحة</p>
-          </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div
+          className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6"
+          style={{ display: "none" }}
+        >
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-blue-100">
