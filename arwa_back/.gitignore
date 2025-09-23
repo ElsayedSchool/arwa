@@ -1,0 +1,27 @@
+/pgData
+
+# Node and build artifacts
+node_modules/
+dist/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Optional local envs
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db
