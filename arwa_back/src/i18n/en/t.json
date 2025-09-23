@@ -1,0 +1,19 @@
+{
+  "credential_error": "username or password is wrong",
+  "apple_login_unauth": "please login to your apple account",
+  "google_login_unauth": "please login to your google account",
+  "user_already_signin": "your account is already exist, you can login",
+  "user_relogin": "please login to your account again",
+  "wrong_verification_code": "code is incorrect",
+  "wrong_group_code": "there is no group with this code",
+  "group_full": "group is full",
+  "joined_group_before": "you have already joined",
+  "join_private_group_rejected": "you can not join private group without code",
+  "item_purchased_before": "you already have this item",
+  "no_enough_coins": "please purchase enough coins to complete to proceed",
+  "no_enough_bonus": "you do not have enough Bonus ",
+  "question_answered_before": "you have answered this question with",
+  "duplicate_group_name": "group name is in use",
+  "incorrect_data": "Incorrect data",
+  "pendiing_trans": "the transaction is pending due to server error, we will handle this process later"
+}

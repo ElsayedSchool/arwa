@@ -1,0 +1,19 @@
+{
+  "credential_error": "اسم المستخدم او كلمه المرور غير صحيحه",
+  "apple_login_unauth": "من فضلك قم بتسجيل الدخول الى حساب ابل",
+  "google_login_unauth": "من فضلك قم بتسجيل الدخول الى جوجل",
+  "user_already_signin": "الحساب موجود بقاعده البيانات يمكنك تسجيل الدخول",
+  "user_relogin": "برجاء تسجيل الدخول من جديد",
+  "wrong_verification_code": "الكود غير صحيح",
+  "wrong_group_code": "لا يوجد مجموعه متاحه بهذا الكود",
+  "group_full": "المجموعه مكتمله",
+  "joined_group_before": "انت مشترك فى المجموعه",
+  "join_private_group_rejected": "لا يمكن المشاركه فى المجموعه بدون كود المجموعه",
+  "item_purchased_before": "لقد تم شراء هذا المنتج من قبل",
+  "no_enough_coins": "برجاء شراء كوينز كافيه لاتمام عمليه الشراء",
+  "no_enough_bonus": "لا يوجد بونص كافى لديك ",
+  "question_answered_before": "لقد تم الاجابه على السوال ب",
+  "duplicate_group_name": "اسم الجروب مستخدم",
+  "incorrect_data": "من فضلك ارسل البيانات صحيحه",
+  "pendiing_trans": "حدث خطا اثناء مراجعه بيانات الشراء سيتم التحقق من العمليه واصلاح المشكله فى اقرب وقت"
+}

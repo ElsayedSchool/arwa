@@ -1,6 +1,5 @@
-import React from 'react';
-import { ArrowLeft, BarChart3, TrendingUp, Users, Package } from 'lucide-react';
-
+import React from "react";
+import { ArrowLeft, BarChart3, TrendingUp, Users, Package } from "lucide-react";
 export const AnalyticsPage = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">

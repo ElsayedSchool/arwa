@@ -1,0 +1,34 @@
+version: '3.9'
+name: 'fel-back'
+services:
+  redis-server:
+    restart: always
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    command: '--requirepass EngElsayed#31'
+  postgres-server:
+    restart: always
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: EngElsayed31
+      POSTGRES_DB: footballapp1
+    ports:
+      - '5432:5432' # Maps port 5433 on your host to port 5432 in the container
+    volumes:
+      - ./postgresDb:/docker-entrypoint-initdb.d/ # Mounts the local backup folder to the init directory
+  fel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    environment:
+      Redis_: postgres
+    depends_on:
+      - redis-server
+      - postgres-server

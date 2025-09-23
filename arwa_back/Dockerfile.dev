@@ -1,0 +1,24 @@
+FROM node:22-alpine3.20
+
+
+ENV STAGE=dev1
+ENV PORT=3000
+# Install build tools for native modules (optional, if your project requires it)
+RUN apk add --no-cache make gcc g++ python3
+
+# Set the working directory in the container
+WORKDIR /usr/app
+
+# Copy package.json and package-lock.json
+COPY ./package.json ./
+
+RUN npm install --force
+
+RUN apk del make gcc g++ python3
+
+COPY . .
+
+RUN chmod -R +x /usr/app/node_modules/.bin
+
+# Install dependencies
+CMD [ "npm", "run", "start:dev" ]
