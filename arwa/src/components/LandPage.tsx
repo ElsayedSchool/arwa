@@ -1,66 +1,21 @@
-import React, { useState } from "react";
-import { SuppliersPage } from "./suppliers/SuppliersPage";
-import { SellersPage } from "./sellers/SellersPage";
-import { OrdersPage } from "./orders/OrdersPage";
-import { CategoriesPage } from "./categories/CategoriesPage";
-import { ProfitsPage } from "./profits/ProfitsPage";
-import { AnalyticsPage } from "./analytics/AnalyticsPage";
-import { ReviewOrdersPage } from "./reviews/ReviewProductsPage";
-import { DeliveriesPage } from "./deliveries/DeliveriesPage";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   ShoppingCart,
   Package,
-  TrendingUp,
   BarChart3,
   Star,
   DollarSign,
   Grid3X3,
 } from "lucide-react";
 
-const LandPage = ({ userRole = "admin" }) => {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+interface LandPageProps {
+  userRole?: string;
+}
 
-  // Page routing
-  if (currentPage === "suppliers") {
-    return (
-      <SuppliersPage
-        onBack={() => setCurrentPage("dashboard")}
-        userRole={userRole}
-      />
-    );
-  }
-  if (currentPage === "sellers") {
-    return <SellersPage onBack={() => setCurrentPage("dashboard")} />;
-  }
-  if (currentPage === "deliveries") {
-    return (
-      <DeliveriesPage
-        onBack={() => setCurrentPage("dashboard")}
-        userRole={userRole}
-      />
-    );
-  }
-  if (currentPage === "orders") {
-    return (
-      <OrdersPage
-        onBack={() => setCurrentPage("dashboard")}
-        userRole={userRole}
-      />
-    );
-  }
-  if (currentPage === "categories") {
-    return <CategoriesPage onBack={() => setCurrentPage("dashboard")} />;
-  }
-  if (currentPage === "profits") {
-    return <ProfitsPage onBack={() => setCurrentPage("dashboard")} />;
-  }
-  if (currentPage === "analytics") {
-    return <AnalyticsPage onBack={() => setCurrentPage("dashboard")} />;
-  }
-  if (currentPage === "reviews") {
-    return <ReviewOrdersPage onBack={() => setCurrentPage("dashboard")} />;
-  }
+const LandPage: React.FC<LandPageProps> = ({ userRole = "admin" }) => {
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -78,7 +33,7 @@ const LandPage = ({ userRole = "admin" }) => {
           {/* Suppliers Analysis - Admin Only */}
           {userRole === "admin" && (
             <button
-              onClick={() => setCurrentPage("suppliers")}
+              onClick={() => navigate("/dashboard/suppliers")}
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
             >
               <div className="flex items-center mb-4">
@@ -95,7 +50,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Inventory Management */}
           <button
-            onClick={() => setCurrentPage("deliveries")}
+            onClick={() => navigate("/dashboard/deliveries")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">
@@ -109,8 +64,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Manage Orders */}
           <button
-            disabled={true}
-            onClick={() => setCurrentPage("orders")}
+            onClick={() => navigate("/dashboard/orders")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">
@@ -124,8 +78,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Revise Orders */}
           <button
-            disabled={true}
-            onClick={() => setCurrentPage("reviews")}
+            onClick={() => navigate("/dashboard/reviews")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">
@@ -139,8 +92,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Categories Management */}
           <button
-            disabled={true}
-            onClick={() => setCurrentPage("categories")}
+            onClick={() => navigate("/dashboard/categories")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">
@@ -154,8 +106,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Daily Profits */}
           <button
-            disabled={true}
-            onClick={() => setCurrentPage("profits")}
+            onClick={() => navigate("/dashboard/profits")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">
@@ -169,8 +120,7 @@ const LandPage = ({ userRole = "admin" }) => {
 
           {/* Analytics */}
           <button
-            disabled={true}
-            onClick={() => setCurrentPage("analytics")}
+            onClick={() => navigate("/dashboard/analytics")}
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
           >
             <div className="flex items-center mb-4">

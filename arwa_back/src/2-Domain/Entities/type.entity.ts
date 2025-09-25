@@ -36,4 +36,12 @@ export class Type extends BaseDelete {
 
   @Column({ nullable: true })
   deletedBy: string | null;
+
+  // a short character representing this type (e.g., ع, ب) used in UI badges
+  @Column({ length: 5, nullable: true })
+  character?: string | null;
+
+  // optional color hex for UI display
+  @Column({ length: 20, nullable: true })
+  color?: string | null;
 }

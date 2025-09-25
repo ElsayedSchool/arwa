@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Plus,
   Edit,
   Trash2,
@@ -8,25 +8,136 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+// @ts-expect-error - JSX module import
 import { Button } from "../ui/Button";
-import { Modal } from "../common/Modal";
+// @ts-expect-error - JSX module import
 import { AddCategoryModal } from "./AddCategoryModal";
+// @ts-expect-error - JSX module import
 import { EditCategoryModal } from "./EditCategoryModal";
 
-export const CategoriesPage = ({ onBack }) => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface Category {
+  id: number;
+  name: string;
+  description: string;
+  productCount: number;
+  subcategories: SubCategory[];
+}
+
+interface SubCategory {
+  id: number;
+  name: string;
+  character: string;
+  color: string;
+  productCount: number;
+}
+
+interface EditingItem {
+  id: number;
+  name: string;
+  description?: string;
+  type: "main" | "sub";
+  mainCategoryId?: number;
+  character?: string;
+  color?: string;
+}
+
+const CategoriesPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Demo data for categories
+  const demoCategories = useMemo<Category[]>(
+    () => [
+      {
+        id: 1,
+        name: "أسماك البحر الأحمر",
+        description: "أسماك طازجة من البحر الأحمر",
+        productCount: 15,
+        subcategories: [
+          {
+            id: 1,
+            name: "بلطي",
+            character: "ط",
+            color: "#FF6B6B",
+            productCount: 5,
+          },
+          {
+            id: 2,
+            name: "دنيس",
+            character: "د",
+            color: "#4ECDC4",
+            productCount: 3,
+          },
+          {
+            id: 3,
+            name: "قاروص",
+            character: "ق",
+            color: "#45B7D1",
+            productCount: 7,
+          },
+        ],
+      },
+      {
+        id: 2,
+        name: "أسماك المياه العذبة",
+        description: "أسماك من المزارع والأنهار",
+        productCount: 12,
+        subcategories: [
+          {
+            id: 4,
+            name: "مبروك",
+            character: "م",
+            color: "#FFA07A",
+            productCount: 4,
+          },
+          {
+            id: 5,
+            name: "بوري",
+            character: "ب",
+            color: "#98D8C8",
+            productCount: 8,
+          },
+        ],
+      },
+      {
+        id: 3,
+        name: "أسماك المحيطات",
+        description: "أسماك من المحيطات العميقة",
+        productCount: 8,
+        subcategories: [
+          {
+            id: 6,
+            name: "سردين",
+            character: "س",
+            color: "#F7DC6F",
+            productCount: 3,
+          },
+          {
+            id: 7,
+            name: "تونة",
+            character: "ت",
+            color: "#BB8FCE",
+            productCount: 5,
+          },
+        ],
+      },
+    ],
+    []
+  );
+
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [expandedCategories, setExpandedCategories] = useState(
     new Set([1, 2, 3])
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
   const [modalType, setModalType] = useState("main"); // 'main' or 'sub'
-  const [selectedMainCategory, setSelectedMainCategory] = useState(null);
+  const [selectedMainCategory, setSelectedMainCategory] = useState<
+    number | null
+  >(null);
 
-  const toggleCategory = (categoryId) => {
+  const toggleCategory = (categoryId: number) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
       newExpanded.delete(categoryId);
@@ -43,47 +154,34 @@ export const CategoriesPage = ({ onBack }) => {
   };
 
   useEffect(() => {
-    let mounted = true;
-    import("../../utils/api").then(({ getCategories }) => {
-      getCategories()
-        .then((res) => {
-          if (mounted) {
-            // API returns DTO-shaped array
-            setCategories(res.data || []);
-          }
-        })
-        .catch(() => {
-          // keep empty or fallback to local sample if desired
-        })
-        .finally(() => {
-          if (mounted) setLoading(false);
-        });
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    // For testing, always use demo data
+    setCategories(demoCategories);
+  }, [demoCategories]);
 
-  const handleAddSubCategory = (mainCategoryId) => {
+  const handleAddSubCategory = (mainCategoryId: number) => {
     setModalType("sub");
     setSelectedMainCategory(mainCategoryId);
     setShowAddModal(true);
   };
 
-  const handleEditMainCategory = (category) => {
+  const handleEditMainCategory = (category: Category) => {
     setEditingItem({ ...category, type: "main" });
     setShowEditModal(true);
   };
 
-  const handleEditSubCategory = (subcategory, mainCategoryId) => {
+  const handleEditSubCategory = (
+    subcategory: SubCategory,
+    mainCategoryId: number
+  ) => {
     setEditingItem({ ...subcategory, type: "sub", mainCategoryId });
     setShowEditModal(true);
   };
 
-  const handleDeleteMainCategory = (categoryId) => {
+  const handleDeleteMainCategory = (categoryId: number) => {
     if (
       confirm("هل أنت متأكد من حذف هذه الفئة الرئيسية وجميع الفئات الفرعية؟")
     ) {
+      // @ts-expect-error - JS module
       import("../../utils/api").then(({ deleteCategory }) => {
         deleteCategory(categoryId)
           .then(() =>
@@ -94,8 +192,12 @@ export const CategoriesPage = ({ onBack }) => {
     }
   };
 
-  const handleDeleteSubCategory = (mainCategoryId, subCategoryId) => {
+  const handleDeleteSubCategory = (
+    mainCategoryId: number,
+    subCategoryId: number
+  ) => {
     if (confirm("هل أنت متأكد من حذف هذه الفئة الفرعية؟")) {
+      // @ts-expect-error - JS module
       import("../../utils/api").then(({ deleteSubCategory }) => {
         deleteSubCategory(mainCategoryId, subCategoryId)
           .then(() =>
@@ -118,17 +220,19 @@ export const CategoriesPage = ({ onBack }) => {
     }
   };
 
-  const handleSaveCategory = (categoryData) => {
+  const handleSaveCategory = (categoryData: any) => {
     if (modalType === "main") {
+      // @ts-expect-error - JS module
       import("../../utils/api").then(({ upsertCategory }) => {
         upsertCategory({
           name: categoryData.name,
           description: categoryData.description,
         })
-          .then((res) => setCategories((prev) => [...prev, res.data]))
+          .then((res: any) => setCategories((prev) => [...prev, res.data]))
           .catch(() => alert("خطأ أثناء إضافة الفئة"));
       });
     } else {
+      // @ts-expect-error - JS module
       import("../../utils/api").then(({ upsertCategory }) => {
         upsertCategory({
           name: categoryData.name,
@@ -137,7 +241,7 @@ export const CategoriesPage = ({ onBack }) => {
           character: categoryData.character,
           color: categoryData.color,
         })
-          .then((res) => {
+          .then((res: any) => {
             // append returned subcategory (or reload)
             setCategories((prev) =>
               prev.map((cat) =>
@@ -156,9 +260,12 @@ export const CategoriesPage = ({ onBack }) => {
     setShowAddModal(false);
   };
 
-  const handleUpdateCategory = (updatedData) => {
+  const handleUpdateCategory = (updatedData: any) => {
+    if (!editingItem) return;
+
+    // @ts-expect-error - JS module
     import("../../utils/api").then(({ upsertCategory }) => {
-      const payload = {
+      const payload: any = {
         id: editingItem.id,
         name: updatedData.name,
         description: updatedData.description,
@@ -170,7 +277,7 @@ export const CategoriesPage = ({ onBack }) => {
         payload.color = updatedData.color;
       }
       upsertCategory(payload)
-        .then((res) => {
+        .then(() => {
           // naive local update: ideally reload categories
           setCategories((prev) =>
             prev.map((cat) => {
@@ -213,21 +320,21 @@ export const CategoriesPage = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <button
-            onClick={onBack}
-            className="inline-flex items-center text-blue-600 hover:text-blue-500 mb-4"
-          >
-            <ArrowLeft size={20} className="ml-2" />
-            العودة إلى الصفحة الرئيسية
-          </button>
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">إدارة الفئات</h1>
-              <p className="text-gray-600 mt-2">
-                إضافة وتعديل فئات المنتجات والفئات الفرعية
-              </p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">إدارة الفئات</h1>
+            <p className="text-gray-600 mt-2">
+              إضافة وتعديل فئات المنتجات والفئات الفرعية
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate("/")}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              العودة للرئيسية
+            </button>
             <Button
               onClick={handleAddMainCategory}
               className="inline-flex items-center"
@@ -374,3 +481,5 @@ export const CategoriesPage = ({ onBack }) => {
     </div>
   );
 };
+
+export { CategoriesPage };

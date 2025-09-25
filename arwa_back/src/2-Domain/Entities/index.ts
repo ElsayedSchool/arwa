@@ -1,6 +1,6 @@
 export * from "./user.entity";
 export * from "./category.entity";
-export * from "./Type.entity";
+export * from "./type.entity";
 export * from "./customer.entity";
 export * from "./inventory.entity";
 export * from "./order.entity";

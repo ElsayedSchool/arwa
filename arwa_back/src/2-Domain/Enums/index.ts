@@ -1,4 +1,4 @@
-export * from "./categoryType.enum";
+export * from "./categoryType.Enum";
 export * from "./cacheEntityType.Enum";
 export * from "./lock.Enum";
 export * from "./support.Enum";

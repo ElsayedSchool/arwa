@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
 import { Truck } from "./truck.entity";
-import { Type } from "./Type.entity";
+import { Type } from "./type.entity";
 
 @Entity()
 export class TruckItem extends BaseDelete {

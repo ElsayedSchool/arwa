@@ -15,6 +15,7 @@ import { databaseConfig } from "./1-Core/Configurations/database.config";
 import { SeedingModule } from "./4-Application/21-SeedingApp/Seeding.Module";
 import { UserManagerModule } from "./4-Application/1-UserManagerApp/userManager.module";
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
+import { existsSync } from "fs";
 
 @Module({
   imports: [
@@ -36,7 +37,10 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
     I18nModule.forRoot({
       fallbackLanguage: "en",
       loaderOptions: {
-        path: join(__dirname, "/i18n/"),
+        // prefer compiled path (dist) but fall back to source path for dev
+        path: existsSync(join(__dirname, "i18n"))
+          ? join(__dirname, "i18n")
+          : join(process.cwd(), "src", "i18n"),
         watch: true,
       },
       resolvers: [

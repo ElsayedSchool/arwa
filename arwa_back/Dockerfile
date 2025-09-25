@@ -1,36 +1,48 @@
-# Use an official Node.js runtime as a parent image
-FROM node:22-alpine3.20
+### Multi-stage production Dockerfile
+### - builder: installs all deps and builds TypeScript -> dist
+### - runner: installs only production deps and copies compiled dist
 
-
-ENV STAGE=prod
-ENV PORT=3000
-# Install build tools for native modules (optional, if your project requires it)
-RUN apk add --no-cache make gcc g++ python3
-
-# Set the working directory in the container
+FROM node:22-alpine3.20 AS builder
 WORKDIR /usr/app
 
-# Copy package.json and package-lock.json
-COPY ./package*.json ./
+# Install build dependencies (needed for some native modules)
+RUN apk add --no-cache make gcc g++ python3
 
-# Install dependencies
-RUN npm install --force
+# Copy package manifests and install full deps for build
+COPY package*.json ./
+RUN npm ci
 
-# Remove build tools to reduce image size (optional, if you installed them earlier)
-RUN apk del make gcc g++ python3
-
-# Copy the rest of the application code
-COPY ./ ./
-
-# Build the NestJS application
+# Copy source and build
+COPY . .
 RUN npm run build
 
+# Remove build tools in builder to keep layers small
+RUN apk del make gcc g++ python3 || true
 
-# Expose the port that the NestJS app runs on
+
+FROM node:22-alpine3.20 AS runner
+WORKDIR /usr/app
+
+ENV NODE_ENV=production
+ENV STAGE=prod
+ENV PORT=3000
+
+# Copy package manifests and install only production dependencies
+COPY package*.json ./
+# Use npm install in runner to be more tolerant of registry/network issues
+# and ensure production deps are installed. This is slightly less strict than
+# `npm ci` but more likely to succeed in constrained environments.
+RUN npm install --production --no-audit --no-fund
+
+# Copy only the compiled output from builder
+COPY --from=builder /usr/app/dist ./dist
+
+# Copy entrypoint and make executable
+COPY --from=builder /usr/app/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh || true
+
+# Expose the runtime port
 EXPOSE 3000
 
-RUN chmod -R +x /usr/app/node_modules/.bin
-
-Copy .env.prod .
-# Start the application
-CMD [ "npm", "run", "start" ]
+# Entrypoint will run migrations then start the app
+ENTRYPOINT ["/usr/app/entrypoint.sh"]

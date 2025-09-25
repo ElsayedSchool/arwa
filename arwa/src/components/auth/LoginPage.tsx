@@ -1,18 +1,38 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { Button, Input } from "../ui";
+// import { Button, Input } from "../ui";
+import { useAuthStore } from "../../stores/authStore";
 
-export const LoginPage = ({ onLogin, onForgotPassword }) => {
-  const [formData, setFormData] = useState({
+interface LoginPageProps {
+  onForgotPassword?: () => void;
+}
+
+interface FormData {
+  username: string;
+  password: string;
+}
+
+interface Errors {
+  username?: string;
+  password?: string;
+  general?: string;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onForgotPassword }) => {
+  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+
+  const [formData, setFormData] = useState<FormData>({
     username: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Errors>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: Errors = {};
 
     if (!formData.username.trim()) {
       newErrors.username = "اسم المستخدم مطلوب";
@@ -28,7 +48,7 @@ export const LoginPage = ({ onLogin, onForgotPassword }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -36,17 +56,27 @@ export const LoginPage = ({ onLogin, onForgotPassword }) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
+      // TODO: Replace with actual API call
+      // const response = await api.post('/auth/login', formData);
+      // const { user, token } = response.data;
+      // localStorage.setItem('token', token);
+      // login(user);
+
+      // Simulate for now
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      onLogin(formData);
+      const mockUser = { id: "1", username: formData.username, role: "admin" };
+      login(mockUser);
+      navigate("/");
     } catch (error) {
-      setErrors({ general: error.message || "حدث خطأ أثناء تسجيل الدخول" });
+      const message =
+        error instanceof Error ? error.message : "حدث خطأ أثناء تسجيل الدخول";
+      setErrors({ general: message });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -83,28 +113,52 @@ export const LoginPage = ({ onLogin, onForgotPassword }) => {
             )}
 
             <div className="space-y-4">
-              <Input
-                label="اسم المستخدم"
-                type="text"
-                value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
-                placeholder="أدخل اسم المستخدم"
-                error={errors.username}
-                className="text-right"
-              />
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  اسم المستخدم
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange("username", e.target.value)
+                  }
+                  placeholder="أدخل اسم المستخدم"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right ${
+                    errors.username ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.username && (
+                  <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                )}
+              </div>
 
               <div className="relative">
-                <Input
-                  label="كلمة المرور"
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  كلمة المرور
+                </label>
+                <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) =>
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleInputChange("password", e.target.value)
                   }
                   placeholder="أدخل كلمة المرور"
-                  error={errors.password}
-                  className="text-right pr-10"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right pr-10 ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  }`}
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
                 <button
                   type="button"
                   className="absolute left-3 top-9 text-gray-400 hover:text-gray-600"
@@ -140,9 +194,13 @@ export const LoginPage = ({ onLogin, onForgotPassword }) => {
               </button>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              disabled={isLoading}
+            >
               {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
-            </Button>
+            </button>
           </form>
 
           <div className="text-center">
@@ -195,3 +253,5 @@ export const LoginPage = ({ onLogin, onForgotPassword }) => {
     </div>
   );
 };
+
+export { LoginPage };
