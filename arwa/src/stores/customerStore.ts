@@ -54,10 +54,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newCustomer = await customerService.createCustomer(data);
-      set((state) => ({
-        customers: [...state.customers, newCustomer],
-        loading: false,
-      }));
+      // Refresh list to reflect server-calculated fields (e.g., dates, totals)
+      const customers = await customerService.getAllCustomers();
+      set({ customers, loading: false });
       return newCustomer;
     } catch (error) {
       const errorMessage =
@@ -71,12 +70,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const updatedCustomer = await customerService.updateCustomer(data);
-      set((state) => ({
-        customers: state.customers.map((customer) =>
-          customer.id === data.id ? updatedCustomer : customer
-        ),
-        loading: false,
-      }));
+      // Refresh list to ensure we have latest values from DB
+      const customers = await customerService.getAllCustomers();
+      set({ customers, loading: false });
       return updatedCustomer;
     } catch (error) {
       const errorMessage =
@@ -90,10 +86,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       await customerService.deleteCustomer(id);
-      set((state) => ({
-        customers: state.customers.filter((customer) => customer.id !== id),
-        loading: false,
-      }));
+      // Refresh list to reflect deletion
+      const customers = await customerService.getAllCustomers();
+      set({ customers, loading: false });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to delete customer";

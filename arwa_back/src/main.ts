@@ -14,15 +14,33 @@ async function bootstrap() {
 
   await new SeedingService(app).SeedData();
 
+  const allowedOrigins = [
+    "http://localhost:4200",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "https://www.felsport.com",
+    "https://admin.felsport.com",
+    "https://felsport.com",
+  ];
+
   const corsOptions: CorsOptions = {
-    origin: [
-      "http://localhost:4200",
-      "https://www.felsport.com",
-      "https://admin.felsport.com",
-      "https://felsport.com",
+    // In dev, allow any origin to simplify local testing; otherwise, restrict to list
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // allow non-browser or same-origin
+      if (process.env.STAGE === "dev" || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "PUT", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Origin",
+      "Accept",
+      "Content-Type",
+      "Authorization",
+      "x-auth-token",
     ],
-    methods: "GET,PUT,POST,DELETE",
-    allowedHeaders: "Origin,Accept,Content-Type,Authorization,x-auth-token",
   };
   app.enableCors(corsOptions);
 

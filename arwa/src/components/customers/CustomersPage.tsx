@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Users, Plus, Search, AlertCircle, Edit, Trash2 } from "lucide-react";
 import { TopNavigation } from "../common/TopNavigation";
 import { Button } from "../ui/Button";
@@ -17,9 +17,6 @@ const CustomersPage: React.FC = () => {
     loading,
     error,
     searchTerm,
-    filteredCustomers,
-    stats,
-    fetchCustomers,
     deleteCustomer,
     setSearchTerm,
     clearError,
@@ -29,8 +26,38 @@ const CustomersPage: React.FC = () => {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+    // Run once on mount; avoids any dependency identity pitfalls
+    useCustomerStore.getState().fetchCustomers();
+  }, []);
+
+  const formatDate = (iso?: string) => {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("ar-SA");
+  };
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchTerm) return customers;
+    const term = searchTerm.toLowerCase();
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(term) ||
+        c.phoneNumber.includes(searchTerm) ||
+        (c.nickname && c.nickname.toLowerCase().includes(term))
+    );
+  }, [customers, searchTerm]);
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      total: customers.length,
+      active: customers.filter((c) => Number(c.totalDue) > 0).length,
+      newThisMonth: customers.filter((c) => new Date(c.createdAt) >= thisMonth)
+        .length,
+      inactive: customers.filter((c) => Number(c.totalDue) === 0).length,
+    };
+  }, [customers]);
 
   const handleDeleteCustomer = async (customerId: string) => {
     if (window.confirm("هل أنت متأكد من حذف هذا العميل؟")) {
@@ -256,7 +283,7 @@ const CustomersPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {new Date(c.lastUpdated).toLocaleDateString("ar-SA")}
+                      {formatDate(c.lastUpdated)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
