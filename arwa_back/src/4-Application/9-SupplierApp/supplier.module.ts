@@ -4,8 +4,10 @@ import { GetAllSupplierHandler } from "./Queries/getAllSupplier.Handler";
 import { GetByIdSupplierHandler } from "./Queries/getByIdSupplier.Handler";
 import { UpsertSupplierHandler } from "./Commands/upsertSupplier.Handler";
 import { DeleteSupplierHandler } from "./Commands/deleteSupplier.Handler";
+import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.module";
 
 @Module({
+  imports: [RepositoryModule],
   controllers: [SupplierController],
   providers: [
     GetAllSupplierHandler,

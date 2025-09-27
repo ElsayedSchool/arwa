@@ -14,6 +14,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { databaseConfig } from "./1-Core/Configurations/database.config";
 import { SeedingModule } from "./4-Application/21-SeedingApp/Seeding.Module";
 import { CustomerModule } from "./4-Application/4-CustomerApp/customer.module";
+import { SupplierModule } from "./4-Application/9-SupplierApp/supplier.module";
 import { UserManagerModule } from "./4-Application/1-UserManagerApp/userManager.module";
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
 import { existsSync } from "fs";
@@ -63,6 +64,7 @@ import { existsSync } from "fs";
     UserManagerModule,
     SeedingModule,
     CustomerModule,
+    SupplierModule,
   ],
   controllers: [AppController],
   providers: [AppService, BcryptService],

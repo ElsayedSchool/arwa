@@ -86,11 +86,15 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
               {c.nickname || "-"}
             </td>
             <td className="px-4 py-3 text-sm font-medium">
-              <span className={c.totalDue > 0 ? "text-red-600" : "text-green-600"}>
+              <span
+                className={c.totalDue > 0 ? "text-red-600" : "text-green-600"}
+              >
                 {formatCurrency(c.totalDue)}
               </span>
             </td>
-            <td className="px-4 py-3 text-sm text-gray-600">{formatDate(c.lastUpdated)}</td>
+            <td className="px-4 py-3 text-sm text-gray-600">
+              {formatDate(c.lastUpdated)}
+            </td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-2">
                 <button
