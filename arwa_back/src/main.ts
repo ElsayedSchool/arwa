@@ -40,6 +40,8 @@ async function bootstrap() {
       "Content-Type",
       "Authorization",
       "x-auth-token",
+      "X-Skip-Auth-Redirect",
+      "x-skip-auth-redirect",
     ],
   };
   app.enableCors(corsOptions);

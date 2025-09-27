@@ -18,9 +18,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized
+      // If the caller asked to skip redirect (public endpoint), don't force navigation
+      const cfg = error.config as Record<string, unknown> | undefined;
+      const skip = Boolean(
+        cfg && (cfg as { skipAuthRedirect?: boolean }).skipAuthRedirect
+      );
+      if (skip) {
+        return Promise.reject(error);
+      }
+
+      // Handle unauthorized for protected endpoints
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      // Respect Vite base path (e.g., /arwa/)
+      const base = (import.meta.env.BASE_URL || "/").replace(/\/*$/, "/");
+      const target = `${base}login`;
+      if (window.location.pathname !== target) {
+        window.location.href = target;
+      }
     }
     return Promise.reject(error);
   }

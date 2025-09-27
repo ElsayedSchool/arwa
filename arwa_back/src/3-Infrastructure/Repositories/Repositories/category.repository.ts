@@ -46,12 +46,18 @@ export class CategoryRepo
   }
 
   async getAllCategories(): Promise<Category[]> {
-    // return only base categories and include their subcategories relation
-    return await this.db.find({
-      where: { isDeleted: false, isBase: true },
-      relations: ["subcategories"],
-      order: { name: "ASC" },
-    });
+    // Return only base categories and include ONLY non-deleted subcategories
+    return await this.db
+      .createQueryBuilder("category")
+      .where("category.isDeleted = false AND category.isBase = true")
+      .leftJoinAndSelect(
+        "category.subcategories",
+        "sub",
+        "sub.isDeleted = false"
+      )
+      .orderBy("category.name", "ASC")
+      .addOrderBy("sub.name", "ASC")
+      .getMany();
   }
 
   /**

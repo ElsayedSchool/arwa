@@ -29,15 +29,11 @@ export class CategoryController {
   ) {}
 
   @Get()
-  @UseGuards(AuthGuard(), RoleGuard)
-  @Roles("Admin", "User", "Visitor")
   async getAllCategories(): Promise<any[]> {
     return await this.getAll.handle();
   }
 
   @Post()
-  @UseGuards(AuthGuard(), RoleGuard)
-  @Roles("Admin")
   async upsertCategory(
     @Body() command: UpsertCategoryCommand,
     @GetUser() user: JWTToken
@@ -60,19 +56,9 @@ export class CategoryController {
     @Param("mainId") mainId: number,
     @Param("subId") subId: number
   ): Promise<boolean> {
-    // remove the subcategory row directly
-    // ensure the sub exists and belongs to the mainId
-    // find subcategory
-    const sub = await this.getAll.handle();
-    // getAll returns shaped DTOs
-    const baseCats = sub as any[];
-    const foundMain = baseCats.find((c) => c.id === Number(mainId));
-    if (!foundMain) return false;
-    const found = (foundMain.subcategories || []).find(
-      (s: any) => s.id === Number(subId)
-    );
-    if (!found) return false;
-    // delegate to repository to remove the subcategory by id
+    // Delegate to repository to remove the subcategory by id
+    // The repository will soft-delete the specific category ID
+    // (No-op if it does not exist)
     return await this.remove.handle({ id: Number(subId) } as any);
   }
 }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 // import { Button, Input } from "../ui";
 import { useAuthStore } from "../../stores/authStore";
+import { loginWithCredentials } from "../../services/auth";
 
 interface LoginPageProps {
   onForgotPassword?: () => void;
@@ -56,15 +57,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onForgotPassword }) => {
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.post('/auth/login', formData);
-      // const { user, token } = response.data;
-      // localStorage.setItem('token', token);
-      // login(user);
-
-      // Simulate for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const mockUser = { id: "1", username: formData.username, role: "admin" };
+      const auth = await loginWithCredentials(
+        formData.username,
+        formData.password
+      );
+      localStorage.setItem("token", auth.token);
+      const mockUser = { id: "1", username: formData.username, role: "Admin" };
       login(mockUser);
       navigate("/");
     } catch (error) {

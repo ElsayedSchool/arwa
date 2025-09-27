@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Edit,
@@ -18,24 +18,12 @@ import {
   isNewSubCategory,
   isUpdateMainCategory,
   isUpdateSubCategory,
-  isApiResponse,
 } from "../../utils/typeGuards";
+import { useCategoryStore } from "../../stores/categoryStore";
+import type { CategoryDTO, UpsertCategoryPayload } from "./api/categoryApi";
 
-interface Category {
-  id: number;
-  name: string;
-  description: string;
-  productCount: number;
-  subcategories: SubCategory[];
-}
-
-interface SubCategory {
-  id: number;
-  name: string;
-  character: string;
-  color: string;
-  productCount: number;
-}
+type Category = CategoryDTO;
+type SubCategory = CategoryDTO["subcategories"][number];
 
 interface EditingItem {
   id: number;
@@ -43,100 +31,20 @@ interface EditingItem {
   description?: string;
   type: "main" | "sub";
   mainCategoryId?: number;
-  character?: string;
-  color?: string;
-}
-
-interface ApiResponse {
-  data?: Category[];
+  character?: string | null;
+  color?: string | null;
 }
 
 const CategoriesPage: React.FC = () => {
-  // Demo data for categories
-  const demoCategories = useMemo<Category[]>(
-    () => [
-      {
-        id: 1,
-        name: "أسماك البحر الأحمر",
-        description: "أسماك طازجة من البحر الأحمر",
-        productCount: 15,
-        subcategories: [
-          {
-            id: 1,
-            name: "بلطي",
-            character: "ط",
-            color: "#FF6B6B",
-            productCount: 5,
-          },
-          {
-            id: 2,
-            name: "دنيس",
-            character: "د",
-            color: "#4ECDC4",
-            productCount: 3,
-          },
-          {
-            id: 3,
-            name: "قاروص",
-            character: "ق",
-            color: "#45B7D1",
-            productCount: 7,
-          },
-        ],
-      },
-      {
-        id: 2,
-        name: "أسماك المياه العذبة",
-        description: "أسماك من المزارع والأنهار",
-        productCount: 12,
-        subcategories: [
-          {
-            id: 4,
-            name: "مبروك",
-            character: "م",
-            color: "#FFA07A",
-            productCount: 4,
-          },
-          {
-            id: 5,
-            name: "بوري",
-            character: "ب",
-            color: "#98D8C8",
-            productCount: 8,
-          },
-        ],
-      },
-      {
-        id: 3,
-        name: "أسماك المحيطات",
-        description: "أسماك من المحيطات العميقة",
-        productCount: 8,
-        subcategories: [
-          {
-            id: 6,
-            name: "سردين",
-            character: "س",
-            color: "#F7DC6F",
-            productCount: 3,
-          },
-          {
-            id: 7,
-            name: "تونة",
-            character: "ت",
-            color: "#BB8FCE",
-            productCount: 5,
-          },
-        ],
-      },
-    ],
-    []
-  );
-
-  // Initialize with demo data immediately so the page shows categories on first render
-  const [categories, setCategories] = useState<Category[]>(() => {
-    console.log("Initializing categories with demo data:", demoCategories);
-    return demoCategories;
-  });
+  const {
+    categories,
+    loading,
+    fetch,
+    upsert,
+    removeCategory,
+    removeSubCategory,
+  } = useCategoryStore();
+  const [error, setError] = useState<string | null>(null);
 
   const [expandedCategories, setExpandedCategories] = useState(
     new Set([1, 2, 3])
@@ -166,27 +74,16 @@ const CategoriesPage: React.FC = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
-    // @ts-expect-error - API module import
-    import("../../utils/api").then(({ getCategories }) => {
-      getCategories()
-        .then((res: ApiResponse) => {
-          if (mounted) {
-            // API returns DTO-shaped array
-            setCategories(res.data || []);
-          }
-        })
-        .catch(() => {
-          // keep empty or fallback to local sample if desired
-        })
-        .finally(() => {
-          // API call completed
-        });
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    (async () => {
+      setError(null);
+      try {
+        await fetch();
+      } catch {
+        // store already set error, but keep a local message for UI
+        setError("غير مصرح لك بعرض الفئات أو حدث خطأ أثناء التحميل");
+      }
+    })();
+  }, [fetch]);
 
   const handleAddSubCategory = (mainCategoryId: number) => {
     setModalType("sub");
@@ -207,94 +104,56 @@ const CategoriesPage: React.FC = () => {
     setShowEditModal(true);
   };
 
-  const handleDeleteMainCategory = (categoryId: number) => {
-    if (
-      confirm("هل أنت متأكد من حذف هذه الفئة الرئيسية وجميع الفئات الفرعية؟")
-    ) {
-      // @ts-expect-error - JS module
-      import("../../utils/api").then(({ deleteCategory }) => {
-        deleteCategory(categoryId)
-          .then(() =>
-            setCategories((prev) => prev.filter((cat) => cat.id !== categoryId))
-          )
-          .catch(() => alert("خطأ أثناء حذف الفئة"));
-      });
+  const handleDeleteMainCategory = async (categoryId: number) => {
+    const sure = confirm(
+      "هل أنت متأكد من حذف هذه الفئة الرئيسية وجميع الفئات الفرعية؟"
+    );
+    if (!sure) return;
+    try {
+      const ok = await removeCategory(categoryId);
+      if (!ok) {
+        alert("غير مصرح بحذف الفئة أو حدث خطأ.");
+      }
+    } catch {
+      alert("خطأ أثناء حذف الفئة");
     }
   };
 
-  const handleDeleteSubCategory = (
+  const handleDeleteSubCategory = async (
     mainCategoryId: number,
     subCategoryId: number
   ) => {
-    if (confirm("هل أنت متأكد من حذف هذه الفئة الفرعية؟")) {
-      // @ts-expect-error - JS module
-      import("../../utils/api").then(({ deleteSubCategory }) => {
-        deleteSubCategory(mainCategoryId, subCategoryId)
-          .then(() =>
-            setCategories((prev) =>
-              prev.map((cat) =>
-                cat.id === mainCategoryId
-                  ? {
-                      ...cat,
-                      subcategories: cat.subcategories.filter(
-                        (sub) => sub.id !== subCategoryId
-                      ),
-                      productCount: (cat.subcategories || []).length - 1,
-                    }
-                  : cat
-              )
-            )
-          )
-          .catch(() => alert("خطأ أثناء حذف الفئة الفرعية"));
-      });
+    const sure = confirm("هل أنت متأكد من حذف هذه الفئة الفرعية؟");
+    if (!sure) return;
+    try {
+      const ok = await removeSubCategory(mainCategoryId, subCategoryId);
+      if (!ok) {
+        alert("غير مصرح بحذف الفئة الفرعية أو حدث خطأ.");
+      }
+    } catch {
+      alert("خطأ أثناء حذف الفئة الفرعية");
     }
   };
 
   const handleSaveCategory = (categoryData: unknown) => {
     if (modalType === "main" && isNewMainCategory(categoryData)) {
-      // @ts-expect-error - JS module
-      import("../../utils/api").then(({ upsertCategory }) => {
-        upsertCategory({
-          name: categoryData.name,
-          description: categoryData.description,
+      upsert({ name: categoryData.name, description: categoryData.description })
+        .then((ok) => {
+          if (!ok) setError("غير مصرح بإضافة الفئة أو حدث خطأ.");
         })
-          .then((res: unknown) => {
-            if (isApiResponse(res)) {
-              setCategories((prev) => [...prev, res.data as Category]);
-            }
-          })
-          .catch(() => alert("خطأ أثناء إضافة الفئة"));
-      });
+        .catch(() => setError("غير مصرح بإضافة الفئة أو حدث خطأ."));
     } else if (modalType === "sub" && isNewSubCategory(categoryData)) {
-      // @ts-expect-error - JS module
-      import("../../utils/api").then(({ upsertCategory }) => {
-        upsertCategory({
-          name: categoryData.name,
-          type: "sub",
-          mainCategoryId: selectedMainCategory,
-          character: categoryData.character,
-          color: categoryData.color,
+      upsert({
+        name: categoryData.name,
+        type: "sub",
+        mainCategoryId: selectedMainCategory as number,
+        character: categoryData.character,
+        color: categoryData.color,
+      })
+        .then((ok) => {
+          if (!ok) setError("غير مصرح بإضافة الفئة الفرعية أو حدث خطأ.");
         })
-          .then((res: unknown) => {
-            if (isApiResponse(res)) {
-              // append returned subcategory (or reload)
-              setCategories((prev) =>
-                prev.map((cat) =>
-                  cat.id === selectedMainCategory
-                    ? {
-                        ...cat,
-                        subcategories: [
-                          ...(cat.subcategories || []),
-                          res.data as SubCategory,
-                        ],
-                      }
-                    : cat
-                )
-              );
-            }
-          })
-          .catch(() => alert("خطأ أثناء إضافة الفئة الفرعية"));
-      });
+        .catch(() => setError("غير مصرح بإضافة الفئة الفرعية أو حدث خطأ."));
     }
     setShowAddModal(false);
   };
@@ -302,77 +161,35 @@ const CategoriesPage: React.FC = () => {
   const handleUpdateCategory = (updatedData: unknown) => {
     if (!editingItem) return;
 
-    // @ts-expect-error - JS module
-    import("../../utils/api").then(({ upsertCategory }) => {
-      let payload: Record<string, unknown> = {
-        id: editingItem.id,
+    let payload: Record<string, unknown> = {
+      id: editingItem.id,
+    };
+
+    if (editingItem.type === "main" && isUpdateMainCategory(updatedData)) {
+      payload = {
+        ...payload,
+        name: updatedData.name,
+        description: updatedData.description,
       };
+    } else if (editingItem.type === "sub" && isUpdateSubCategory(updatedData)) {
+      payload = {
+        ...payload,
+        name: updatedData.name,
+        type: "sub",
+        mainCategoryId: editingItem.mainCategoryId,
+        character: updatedData.character,
+        color: updatedData.color,
+      };
+    }
 
-      if (editingItem.type === "main" && isUpdateMainCategory(updatedData)) {
-        payload = {
-          ...payload,
-          name: updatedData.name,
-          description: updatedData.description,
-        };
-      } else if (
-        editingItem.type === "sub" &&
-        isUpdateSubCategory(updatedData)
-      ) {
-        payload = {
-          ...payload,
-          name: updatedData.name,
-          type: "sub",
-          mainCategoryId: editingItem.mainCategoryId,
-          character: updatedData.character,
-          color: updatedData.color,
-        };
-      }
-
-      upsertCategory(payload)
-        .then(() => {
-          // naive local update: ideally reload categories
-          setCategories((prev) =>
-            prev.map((cat) => {
-              if (
-                editingItem.type === "main" &&
-                isUpdateMainCategory(updatedData)
-              ) {
-                return cat.id === editingItem.id
-                  ? {
-                      ...cat,
-                      name: updatedData.name,
-                      description: updatedData.description || "",
-                    }
-                  : cat;
-              }
-              if (
-                cat.id === editingItem.mainCategoryId &&
-                isUpdateSubCategory(updatedData)
-              ) {
-                return {
-                  ...cat,
-                  subcategories: (cat.subcategories || []).map((sub) =>
-                    sub.id === editingItem.id
-                      ? {
-                          ...sub,
-                          name: updatedData.name,
-                          character: updatedData.character,
-                          color: updatedData.color,
-                        }
-                      : sub
-                  ),
-                };
-              }
-              return cat;
-            })
-          );
-        })
-        .catch(() => alert("خطأ أثناء تحديث الفئة"))
-        .finally(() => {
-          setShowEditModal(false);
-          setEditingItem(null);
-        });
-    });
+    upsert(payload as UpsertCategoryPayload)
+      .then((ok) => {
+        if (!ok) setError("غير مصرح بتحديث الفئة أو حدث خطأ.");
+      })
+      .finally(() => {
+        setShowEditModal(false);
+        setEditingItem(null);
+      });
   };
 
   return (
@@ -401,11 +218,15 @@ const CategoriesPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {(() => {
-            console.log("Categories to render:", categories);
-            return null;
-          })()}
-          {categories.length === 0 ? (
+          {error ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <p className="text-red-600">{error}</p>
+            </div>
+          ) : loading ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <p className="text-gray-600">جاري التحميل...</p>
+            </div>
+          ) : categories.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <p className="text-gray-600">لا توجد فئات لعرضها</p>
             </div>
@@ -479,9 +300,11 @@ const CategoriesPage: React.FC = () => {
                             <div className="flex items-center">
                               <div
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                                style={{ backgroundColor: subcategory.color }}
+                                style={{
+                                  backgroundColor: subcategory.color || "#888",
+                                }}
                               >
-                                {subcategory.character}
+                                {subcategory.character || "?"}
                               </div>
                               <span className="font-medium text-gray-900 mr-3">
                                 {subcategory.name}

@@ -18,6 +18,7 @@ import { SupplierModule } from "./4-Application/9-SupplierApp/supplier.module";
 import { UserManagerModule } from "./4-Application/1-UserManagerApp/userManager.module";
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
 import { existsSync } from "fs";
+import { CategoryModule } from "./4-Application/3-CategoryApp/category.module";
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { existsSync } from "fs";
     SeedingModule,
     CustomerModule,
     SupplierModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, BcryptService],
