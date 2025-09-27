@@ -1,12 +1,12 @@
-import React from 'react';
-import { Input } from '../../ui/Input';
-import { Button } from '../../ui/Button';
-import { SearchableDropdown } from '../../common/SearchableDropdown';
+import React from "react";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
+import { SearchableDropdown } from "../../common/SearchableDropdown";
 
-export const AddSupplierProductForm = ({ 
-  onSubmit, 
-  onCancel, 
-  existingSuppliers 
+export const AddSupplierProductForm = ({
+  onSubmit,
+  onCancel,
+  existingSuppliers,
 }) => {
   const [formData, setFormData] = React.useState({
     supplierName: "",
@@ -20,12 +20,13 @@ export const AddSupplierProductForm = ({
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.supplierName.trim()) newErrors.supplierName = "اسم المورد مطلوب";
+    if (!formData.supplierName.trim())
+      newErrors.supplierName = "اسم المورد مطلوب";
     if (!formData.fishType.trim()) newErrors.fishType = "نوع السمك مطلوب";
-    if (!formData.suppliedKg || parseFloat(formData.suppliedKg) <= 0) 
+    if (!formData.suppliedKg || parseFloat(formData.suppliedKg) <= 0)
       newErrors.suppliedKg = "الكمية يجب أن تكون أكبر من صفر";
     if (!formData.supplyDate) newErrors.supplyDate = "تاريخ التوريد مطلوب";
-    if (!formData.pricePerKg || parseFloat(formData.pricePerKg) <= 0) 
+    if (!formData.pricePerKg || parseFloat(formData.pricePerKg) <= 0)
       newErrors.pricePerKg = "السعر يجب أن يكون أكبر من صفر";
 
     setErrors(newErrors);

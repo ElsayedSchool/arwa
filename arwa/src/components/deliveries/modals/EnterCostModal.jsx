@@ -1,46 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from '../../common/Modal';
-import { Input } from '../../ui/Input';
-import { Button } from '../../ui/Button';
+import React, { useState, useEffect } from "react";
+import { Modal } from "../../common/Modal";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
 
 export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
   const [formData, setFormData] = useState({
-    totalCost: '',
-    amountPaid: ''
+    totalCost: "",
+    amountPaid: "",
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (delivery) {
       setFormData({
-        totalCost: delivery.totalCost || '',
-        amountPaid: delivery.amountPaid || ''
+        totalCost: delivery.totalCost || "",
+        amountPaid: delivery.amountPaid || "",
       });
     }
   }, [delivery]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.totalCost || formData.totalCost <= 0) {
-      newErrors.totalCost = 'التكلفة الإجمالية مطلوبة ويجب أن تكون أكبر من صفر';
+      newErrors.totalCost = "التكلفة الإجمالية مطلوبة ويجب أن تكون أكبر من صفر";
     }
-    
+
     if (formData.amountPaid < 0) {
-      newErrors.amountPaid = 'المبلغ المدفوع لا يمكن أن يكون سالباً';
+      newErrors.amountPaid = "المبلغ المدفوع لا يمكن أن يكون سالباً";
     }
-    
+
     if (parseFloat(formData.amountPaid) > parseFloat(formData.totalCost)) {
-      newErrors.amountPaid = 'المبلغ المدفوع لا يمكن أن يكون أكبر من التكلفة الإجمالية';
+      newErrors.amountPaid =
+        "المبلغ المدفوع لا يمكن أن يكون أكبر من التكلفة الإجمالية";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -49,7 +50,7 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
     if (validateForm()) {
       const costData = {
         totalCost: parseFloat(formData.totalCost),
-        amountPaid: parseFloat(formData.amountPaid || 0)
+        amountPaid: parseFloat(formData.amountPaid || 0),
       };
       onSave(delivery.id, costData);
       handleClose();
@@ -57,30 +58,32 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
   };
 
   const handleClose = () => {
-    setFormData({ totalCost: '', amountPaid: '' });
+    setFormData({ totalCost: "", amountPaid: "" });
     setErrors({});
     onClose();
   };
 
   if (!delivery) return null;
 
-  const remainingAmount = parseFloat(formData.totalCost || 0) - parseFloat(formData.amountPaid || 0);
+  const remainingAmount =
+    parseFloat(formData.totalCost || 0) - parseFloat(formData.amountPaid || 0);
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="إدخال تكلفة التوصيل"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="إدخال تكلفة التوصيل">
       <div className="space-y-6">
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-medium text-gray-900 mb-2">تفاصيل التوصيل</h3>
-          <p className="text-sm text-gray-600">المورد: {delivery.supplierName}</p>
+          <p className="text-sm text-gray-600">
+            المورد: {delivery.supplierName}
+          </p>
           <p className="text-sm text-gray-600">السائق: {delivery.driverName}</p>
           <p className="text-sm text-gray-600">
-            التاريخ: {new Date(delivery.deliveryDate).toLocaleDateString('ar-EG')}
+            التاريخ:{" "}
+            {new Date(delivery.deliveryDate).toLocaleDateString("ar-EG")}
           </p>
-          <p className="text-sm text-gray-600">الوزن الإجمالي: {delivery.totalWeight.toFixed(1)} كجم</p>
+          <p className="text-sm text-gray-600">
+            الوزن الإجمالي: {delivery.totalWeight.toFixed(1)} كجم
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -89,7 +92,7 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
             type="number"
             step="0.01"
             value={formData.totalCost}
-            onChange={(e) => handleInputChange('totalCost', e.target.value)}
+            onChange={(e) => handleInputChange("totalCost", e.target.value)}
             placeholder="أدخل التكلفة الإجمالية"
             error={errors.totalCost}
           />
@@ -99,7 +102,7 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
             type="number"
             step="0.01"
             value={formData.amountPaid}
-            onChange={(e) => handleInputChange('amountPaid', e.target.value)}
+            onChange={(e) => handleInputChange("amountPaid", e.target.value)}
             placeholder="أدخل المبلغ المدفوع (اختياري)"
             error={errors.amountPaid}
           />
@@ -121,7 +124,11 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
                 </div>
                 <div className="col-span-2">
                   <span className="text-gray-600">المبلغ المتبقي:</span>
-                  <span className={`font-medium mr-2 ${remainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <span
+                    className={`font-medium mr-2 ${
+                      remainingAmount > 0 ? "text-red-600" : "text-green-600"
+                    }`}
+                  >
                     {remainingAmount.toLocaleString()} ج.م
                   </span>
                 </div>
@@ -134,9 +141,7 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
           <Button variant="outline" onClick={handleClose}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit}>
-            حفظ التكلفة
-          </Button>
+          <Button onClick={handleSubmit}>حفظ التكلفة</Button>
         </div>
       </div>
     </Modal>

@@ -52,7 +52,8 @@ export const EditPriceModal = ({ isOpen, onClose, onSave, supplier }) => {
 
   if (!supplier) return null;
 
-  const newTotalCost = supplier.suppliedKg * parseFloat(formData.pricePerKg || 0);
+  const newTotalCost =
+    supplier.suppliedKg * parseFloat(formData.pricePerKg || 0);
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="تعديل سعر الكيلوجرام">

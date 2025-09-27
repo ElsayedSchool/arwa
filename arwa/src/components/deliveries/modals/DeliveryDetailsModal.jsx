@@ -1,32 +1,27 @@
-import React from 'react';
-import { Calendar, User, Truck, Package, DollarSign } from 'lucide-react';
-import { Modal } from '../../common/Modal';
-import { Badge } from '../../common/Badge';
+import React from "react";
+import { Calendar, User, Truck, Package, DollarSign } from "lucide-react";
+import { Modal } from "../../common/Modal";
+import { Badge } from "../../common/Badge";
 
-export const DeliveryDetailsModal = ({ 
-  isOpen, 
-  onClose, 
-  delivery, 
+export const DeliveryDetailsModal = ({
+  isOpen,
+  onClose,
+  delivery,
   userRole,
   getPaymentStatusText,
-  getPaymentStatusVariant 
+  getPaymentStatusVariant,
 }) => {
   if (!delivery) return null;
 
-  const isAdmin = userRole === 'admin' || userRole === 'owner';
+  const isAdmin = userRole === "admin" || userRole === "owner";
 
   const formatDateTime = (date, time) => {
-    const formattedDate = new Date(date).toLocaleDateString('ar-EG');
+    const formattedDate = new Date(date).toLocaleDateString("ar-EG");
     return `${formattedDate} - ${time}`;
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="تفاصيل التوصيل"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="تفاصيل التوصيل" size="lg">
       <div className="space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -38,7 +33,7 @@ export const DeliveryDetailsModal = ({
                 <p className="font-medium">{delivery.supplierName}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <User className="h-5 w-5 text-gray-400 ml-2" />
               <div>
@@ -63,7 +58,9 @@ export const DeliveryDetailsModal = ({
               <Package className="h-5 w-5 text-gray-400 ml-2" />
               <div>
                 <p className="text-sm text-gray-500">إجمالي الوزن</p>
-                <p className="font-medium">{delivery.totalWeight.toFixed(1)} كجم</p>
+                <p className="font-medium">
+                  {delivery.totalWeight.toFixed(1)} كجم
+                </p>
               </div>
             </div>
           </div>
@@ -90,19 +87,25 @@ export const DeliveryDetailsModal = ({
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-500">التكلفة الإجمالية</p>
                 <p className="text-lg font-semibold text-gray-900">
-                  {delivery.totalCost ? `${delivery.totalCost.toLocaleString()} ج.م` : '-'}
+                  {delivery.totalCost
+                    ? `${delivery.totalCost.toLocaleString()} ج.م`
+                    : "-"}
                 </p>
               </div>
               <div className="bg-green-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-500">المبلغ المدفوع</p>
                 <p className="text-lg font-semibold text-green-600">
-                  {delivery.amountPaid ? `${delivery.amountPaid.toLocaleString()} ج.م` : '-'}
+                  {delivery.amountPaid
+                    ? `${delivery.amountPaid.toLocaleString()} ج.م`
+                    : "-"}
                 </p>
               </div>
               <div className="bg-red-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-500">المبلغ المتبقي</p>
                 <p className="text-lg font-semibold text-red-600">
-                  {delivery.remainingAmount ? `${delivery.remainingAmount.toLocaleString()} ج.م` : '-'}
+                  {delivery.remainingAmount
+                    ? `${delivery.remainingAmount.toLocaleString()} ج.م`
+                    : "-"}
                 </p>
               </div>
             </div>
@@ -111,10 +114,15 @@ export const DeliveryDetailsModal = ({
 
         {/* Fish Types */}
         <div className="border-t pt-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">أنواع الأسماك</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            أنواع الأسماك
+          </h3>
           <div className="space-y-3">
             {delivery.fishTypes.map((fish, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">النوع</p>
@@ -126,7 +134,9 @@ export const DeliveryDetailsModal = ({
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">السعر/كجم</p>
-                    <p className="font-medium">{fish.pricePerKg.toFixed(2)} ج.م</p>
+                    <p className="font-medium">
+                      {fish.pricePerKg.toFixed(2)} ج.م
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">الإجمالي</p>
@@ -144,7 +154,8 @@ export const DeliveryDetailsModal = ({
         {delivery.lastEditTime && (
           <div className="border-t pt-4">
             <p className="text-sm text-gray-500">
-              آخر تعديل: {new Date(delivery.lastEditTime).toLocaleString('ar-EG')}
+              آخر تعديل:{" "}
+              {new Date(delivery.lastEditTime).toLocaleString("ar-EG")}
             </p>
           </div>
         )}
