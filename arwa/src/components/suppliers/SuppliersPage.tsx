@@ -7,11 +7,22 @@ import SuppliersAnalysis from "./components/SuppliersAnalysis";
 import SuppliersTable from "./components/SuppliersTable.tsx";
 import SupplierModal from "./components/SupplierModal";
 import { useSupplierStore } from "../../stores/supplierStore";
-import type { Supplier, CreateSupplierData, UpdateSupplierData } from "./models/supplier";
+import type {
+  Supplier,
+  CreateSupplierData,
+  UpdateSupplierData,
+} from "./models/supplier";
 
 const SuppliersPage: React.FC = () => {
-  const { suppliers, loading, error, searchTerm, setSearchTerm, clearError, deleteSupplier } =
-    useSupplierStore();
+  const {
+    suppliers,
+    loading,
+    error,
+    searchTerm,
+    setSearchTerm,
+    clearError,
+    deleteSupplier,
+  } = useSupplierStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -35,7 +46,10 @@ const SuppliersPage: React.FC = () => {
     const total = suppliers.length;
     const active = suppliers.filter((s) => Number(s.totalDue) > 0).length;
     const inactive = suppliers.filter((s) => Number(s.totalDue) === 0).length;
-    const totalDueMoney = suppliers.reduce((sum, s) => sum + Number(s.totalDue), 0);
+    const totalDueMoney = suppliers.reduce(
+      (sum, s) => sum + Number(s.totalDue),
+      0
+    );
     return { total, active, inactive, totalDueMoney };
   }, [suppliers]);
 
@@ -62,9 +76,13 @@ const SuppliersPage: React.FC = () => {
 
   const handleSave = async (data: CreateSupplierData | UpdateSupplierData) => {
     if (editingSupplier) {
-      await useSupplierStore.getState().updateSupplier(data as UpdateSupplierData);
+      await useSupplierStore
+        .getState()
+        .updateSupplier(data as UpdateSupplierData);
     } else {
-      await useSupplierStore.getState().createSupplier(data as CreateSupplierData);
+      await useSupplierStore
+        .getState()
+        .createSupplier(data as CreateSupplierData);
     }
   };
 
@@ -76,7 +94,9 @@ const SuppliersPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">الموردون</h1>
-              <p className="text-gray-600 mt-2">إدارة بيانات الموردين ومعلوماتهم</p>
+              <p className="text-gray-600 mt-2">
+                إدارة بيانات الموردين ومعلوماتهم
+              </p>
             </div>
             <Button className="flex items-center gap-2" onClick={handleAdd}>
               <Plus className="h-4 w-4" />
@@ -90,7 +110,12 @@ const SuppliersPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-red-500" />
               <span className="text-red-700">{error}</span>
-              <Button variant="secondary" size="sm" onClick={clearError} className="mr-auto">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={clearError}
+                className="mr-auto"
+              >
                 إغلاق
               </Button>
             </div>
@@ -114,7 +139,9 @@ const SuppliersPage: React.FC = () => {
         <SuppliersAnalysis stats={stats} />
 
         <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-auto">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">قائمة الموردين</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">
+            قائمة الموردين
+          </h3>
           <SuppliersTable
             suppliers={filteredSuppliers}
             loading={loading}

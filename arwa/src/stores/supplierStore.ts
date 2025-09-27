@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import type { Supplier, CreateSupplierData, UpdateSupplierData } from "../components/suppliers/models/supplier";
+import type {
+  Supplier,
+  CreateSupplierData,
+  UpdateSupplierData,
+} from "../components/suppliers/models/supplier";
 import { supplierApi } from "../components/suppliers/api/supplierApi";
 
 interface SupplierState {
@@ -37,7 +41,8 @@ export const useSupplierStore = create<SupplierState>((set, get) => ({
       set({ suppliers, loading: false });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : "Failed to fetch suppliers",
+        error:
+          error instanceof Error ? error.message : "Failed to fetch suppliers",
         loading: false,
       });
     }
@@ -51,7 +56,8 @@ export const useSupplierStore = create<SupplierState>((set, get) => ({
       set({ suppliers, loading: false });
       return created;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create supplier";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create supplier";
       set({ error: errorMessage, loading: false });
       throw error;
     }
@@ -65,7 +71,8 @@ export const useSupplierStore = create<SupplierState>((set, get) => ({
       set({ suppliers, loading: false });
       return updated;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to update supplier";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update supplier";
       set({ error: errorMessage, loading: false });
       throw error;
     }
@@ -78,7 +85,8 @@ export const useSupplierStore = create<SupplierState>((set, get) => ({
       const suppliers = await supplierApi.getAll();
       set({ suppliers, loading: false });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to delete supplier";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete supplier";
       set({ error: errorMessage, loading: false });
       throw error;
     }
@@ -106,7 +114,8 @@ export const useSupplierStore = create<SupplierState>((set, get) => ({
     return {
       total: suppliers.length,
       active: suppliers.filter((s) => Number(s.totalDue) > 0).length,
-      newThisMonth: suppliers.filter((s) => new Date(s.joinDate) >= thisMonth).length,
+      newThisMonth: suppliers.filter((s) => new Date(s.joinDate) >= thisMonth)
+        .length,
       totalWeight: suppliers.reduce((sum, s) => sum + Number(s.totalWeight), 0),
     };
   },

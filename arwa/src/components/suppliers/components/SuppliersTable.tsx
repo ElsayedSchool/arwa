@@ -67,7 +67,9 @@ const SuppliersTable: React.FC<SuppliersTableProps> = ({
             suppliers.map((s) => (
               <tr key={s.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{s.name}</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {s.name}
+                  </div>
                   {s.nickName && (
                     <div className="text-xs text-gray-500">{s.nickName}</div>
                   )}

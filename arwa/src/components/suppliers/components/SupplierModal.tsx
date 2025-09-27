@@ -68,8 +68,19 @@ const SupplierModal: React.FC<SupplierModalProps> = ({
     e.preventDefault();
     if (!validate()) return;
     const payload: CreateSupplierData | UpdateSupplierData = isEditing
-      ? { id: supplier!.id, name: formData.name, nickName: formData.nickName || undefined, phone: formData.phone, whatsApp: formData.whatsApp || undefined }
-      : { name: formData.name, nickName: formData.nickName || undefined, phone: formData.phone, whatsApp: formData.whatsApp || undefined };
+      ? {
+          id: supplier!.id,
+          name: formData.name,
+          nickName: formData.nickName || undefined,
+          phone: formData.phone,
+          whatsApp: formData.whatsApp || undefined,
+        }
+      : {
+          name: formData.name,
+          nickName: formData.nickName || undefined,
+          phone: formData.phone,
+          whatsApp: formData.whatsApp || undefined,
+        };
     try {
       await onSave(payload);
       onClose();
@@ -84,21 +95,32 @@ const SupplierModal: React.FC<SupplierModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? "تعديل المورد" : "إضافة مورد جديد"} size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? "تعديل المورد" : "إضافة مورد جديد"}
+      size="md"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">اسم المورد *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            اسم المورد *
+          </label>
           <Input
             value={formData.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder="أدخل اسم المورد"
             className={errors.name ? "border-red-500" : ""}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">اللقب (اختياري)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            اللقب (اختياري)
+          </label>
           <Input
             value={formData.nickName}
             onChange={(e) => setField("nickName", e.target.value)}
@@ -107,7 +129,9 @@ const SupplierModal: React.FC<SupplierModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            رقم الهاتف *
+          </label>
           <Input
             type="tel"
             value={formData.phone}
@@ -115,11 +139,15 @@ const SupplierModal: React.FC<SupplierModalProps> = ({
             placeholder="مثال: 01xxxxxxxxx"
             className={errors.phone ? "border-red-500" : ""}
           />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          {errors.phone && (
+            <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">رقم الواتساب (اختياري)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            رقم الواتساب (اختياري)
+          </label>
           <Input
             type="tel"
             value={formData.whatsApp}
@@ -127,11 +155,18 @@ const SupplierModal: React.FC<SupplierModalProps> = ({
             placeholder="مثال: 01xxxxxxxxx"
             className={errors.whatsApp ? "border-red-500" : ""}
           />
-          {errors.whatsApp && <p className="text-red-500 text-sm mt-1">{errors.whatsApp}</p>}
+          {errors.whatsApp && (
+            <p className="text-red-500 text-sm mt-1">{errors.whatsApp}</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
             إلغاء
           </Button>
           <Button type="submit" disabled={loading} className="min-w-[100px]">
