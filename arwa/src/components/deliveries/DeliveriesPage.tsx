@@ -6,15 +6,15 @@ import { Input } from "../ui/Input";
 import { Badge } from "../common/Badge";
 import { TopNavigation } from "../common/TopNavigation";
 // @ts-expect-error - JSX modules
-import { DeliveriesTable } from "./DeliveriesTable";
+import { DeliveriesTable } from "./components/DeliveriesTable";
 // @ts-expect-error - JSX modules
-import { AddDeliveryModal } from "./AddDeliveryModal";
+import { AddDeliveryModal } from "./modals/AddDeliveryModal";
 // @ts-expect-error - JSX modules
-import { EditDeliveryModal } from "./EditDeliveryModal";
+import { EditDeliveryModal } from "./modals/EditDeliveryModal";
 // @ts-expect-error - JSX modules
-import { DeliveryDetailsModal } from "./DeliveryDetailsModal";
+import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
 // @ts-expect-error - JSX modules
-import { EnterCostModal } from "./EnterCostModal";
+import { EnterCostModal } from "./modals/EnterCostModal";
 
 interface FishType {
   type: string;

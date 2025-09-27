@@ -10,17 +10,17 @@ import {
   CreditCard,
 } from "lucide-react";
 // @ts-expect-error - Convert to TSX later
-import { SuppliersTable } from "./SuppliersTable";
+import { SuppliersTable } from "./components/SuppliersTable";
 // @ts-expect-error - Convert to TSX later
-import { AddSupplierProductForm } from "./AddSupplierProductForm";
+import { AddSupplierProductForm } from "./components/AddSupplierProductForm";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Badge } from "../common/Badge";
 import { TopNavigation } from "../common/TopNavigation";
 // @ts-expect-error - Convert to TSX later
-import { EditPaymentModal } from "./EditPaymentModal";
+import { EditPaymentModal } from "./modals/EditPaymentModal";
 // @ts-expect-error - Convert to TSX later
-import { EditPriceModal } from "./EditPriceModal";
+import { EditPriceModal } from "./modals/EditPriceModal";
 
 // TypeScript interfaces
 interface PaymentHistory {

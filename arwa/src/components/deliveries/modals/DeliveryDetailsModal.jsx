@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, User, Truck, Package, DollarSign } from 'lucide-react';
-import { Modal } from '../common/Modal';
-import { Badge } from '../common/Badge';
+import { Modal } from '../../common/Modal';
+import { Badge } from '../../common/Badge';
 
 export const DeliveryDetailsModal = ({ 
   isOpen, 

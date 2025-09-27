@@ -1,146 +1,126 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { Modal } from "../common/Modal";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+import React, { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Modal } from '../../common/Modal';
+import { Input } from '../../ui/Input';
+import { Button } from '../../ui/Button';
 
-export const EditDeliveryModal = ({
-  isOpen,
-  onClose,
-  onSave,
-  delivery,
-  suppliers,
-}) => {
+export const AddDeliveryModal = ({ isOpen, onClose, onSave, suppliers }) => {
   const [formData, setFormData] = useState({
-    supplierName: "",
-    driverName: "",
-    deliveryDate: "",
-    deliveryTime: "",
-    fishTypes: [{ type: "", weight: "", pricePerKg: "" }],
+    supplierName: '',
+    driverName: '',
+    deliveryDate: new Date().toISOString().split('T')[0],
+    deliveryTime: new Date().toTimeString().slice(0, 5),
+    fishTypes: [{ type: '', weight: '', pricePerKg: '' }]
   });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (delivery) {
-      setFormData({
-        supplierName: delivery.supplierName,
-        driverName: delivery.driverName,
-        deliveryDate: delivery.deliveryDate,
-        deliveryTime: delivery.deliveryTime,
-        fishTypes: delivery.fishTypes.map((fish) => ({
-          type: fish.type,
-          weight: fish.weight.toString(),
-          pricePerKg: fish.pricePerKg.toString(),
-        })),
-      });
-    }
-  }, [delivery]);
-
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   const handleFishTypeChange = (index, field, value) => {
     const newFishTypes = [...formData.fishTypes];
     newFishTypes[index] = { ...newFishTypes[index], [field]: value };
-    setFormData((prev) => ({ ...prev, fishTypes: newFishTypes }));
+    setFormData(prev => ({ ...prev, fishTypes: newFishTypes }));
   };
 
   const addFishType = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      fishTypes: [...prev.fishTypes, { type: "", weight: "", pricePerKg: "" }],
+      fishTypes: [...prev.fishTypes, { type: '', weight: '', pricePerKg: '' }]
     }));
   };
 
   const removeFishType = (index) => {
     if (formData.fishTypes.length > 1) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
-        fishTypes: prev.fishTypes.filter((_, i) => i !== index),
+        fishTypes: prev.fishTypes.filter((_, i) => i !== index)
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
+    
     if (!formData.supplierName.trim()) {
-      newErrors.supplierName = "اسم المورد مطلوب";
+      newErrors.supplierName = 'اسم المورد مطلوب';
     }
-
+    
     if (!formData.driverName.trim()) {
-      newErrors.driverName = "اسم السائق مطلوب";
+      newErrors.driverName = 'اسم السائق مطلوب';
     }
-
+    
     if (!formData.deliveryDate) {
-      newErrors.deliveryDate = "تاريخ التوصيل مطلوب";
+      newErrors.deliveryDate = 'تاريخ التوصيل مطلوب';
     }
-
+    
     if (!formData.deliveryTime) {
-      newErrors.deliveryTime = "وقت التوصيل مطلوب";
+      newErrors.deliveryTime = 'وقت التوصيل مطلوب';
     }
 
     formData.fishTypes.forEach((fish, index) => {
       if (!fish.type.trim()) {
-        newErrors[`fishType_${index}`] = "نوع السمك مطلوب";
+        newErrors[`fishType_${index}`] = 'نوع السمك مطلوب';
       }
       if (!fish.weight || fish.weight <= 0) {
-        newErrors[`weight_${index}`] = "الوزن مطلوب ويجب أن يكون أكبر من صفر";
+        newErrors[`weight_${index}`] = 'الوزن مطلوب ويجب أن يكون أكبر من صفر';
       }
       if (!fish.pricePerKg || fish.pricePerKg <= 0) {
-        newErrors[`price_${index}`] = "السعر مطلوب ويجب أن يكون أكبر من صفر";
+        newErrors[`price_${index}`] = 'السعر مطلوب ويجب أن يكون أكبر من صفر';
       }
     });
-
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
     if (validateForm()) {
-      const totalWeight = formData.fishTypes.reduce(
-        (sum, fish) => sum + parseFloat(fish.weight || 0),
-        0
-      );
-      const totalCost = formData.fishTypes.reduce(
-        (sum, fish) =>
-          sum + parseFloat(fish.weight || 0) * parseFloat(fish.pricePerKg || 0),
-        0
+      const totalWeight = formData.fishTypes.reduce((sum, fish) => sum + parseFloat(fish.weight || 0), 0);
+      const totalCost = formData.fishTypes.reduce((sum, fish) => 
+        sum + (parseFloat(fish.weight || 0) * parseFloat(fish.pricePerKg || 0)), 0
       );
 
-      const updatedDelivery = {
-        ...delivery,
+      const deliveryData = {
         ...formData,
         totalWeight,
         totalCost,
-        fishTypes: formData.fishTypes.map((fish) => ({
+        amountPaid: 0,
+        remainingAmount: totalCost,
+        paymentStatus: 'unpaid',
+        fishTypes: formData.fishTypes.map(fish => ({
           ...fish,
           weight: parseFloat(fish.weight),
-          pricePerKg: parseFloat(fish.pricePerKg),
-        })),
+          pricePerKg: parseFloat(fish.pricePerKg)
+        }))
       };
 
-      onSave(updatedDelivery);
+      onSave(deliveryData);
       handleClose();
     }
   };
 
   const handleClose = () => {
+    setFormData({
+      supplierName: '',
+      driverName: '',
+      deliveryDate: new Date().toISOString().split('T')[0],
+      deliveryTime: new Date().toTimeString().slice(0, 5),
+      fishTypes: [{ type: '', weight: '', pricePerKg: '' }]
+    });
     setErrors({});
     onClose();
   };
-
-  if (!delivery) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="تعديل التوصيل"
+      title="إضافة توصيل جديد"
       size="lg"
     >
       <div className="space-y-6">
@@ -151,16 +131,12 @@ export const EditDeliveryModal = ({
             </label>
             <select
               value={formData.supplierName}
-              onChange={(e) =>
-                handleInputChange("supplierName", e.target.value)
-              }
+              onChange={(e) => handleInputChange('supplierName', e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">اختر المورد</option>
-              {suppliers.map((supplier) => (
-                <option key={supplier} value={supplier}>
-                  {supplier}
-                </option>
+              {suppliers.map(supplier => (
+                <option key={supplier} value={supplier}>{supplier}</option>
               ))}
             </select>
             {errors.supplierName && (
@@ -171,7 +147,7 @@ export const EditDeliveryModal = ({
           <Input
             label="اسم السائق"
             value={formData.driverName}
-            onChange={(e) => handleInputChange("driverName", e.target.value)}
+            onChange={(e) => handleInputChange('driverName', e.target.value)}
             placeholder="أدخل اسم السائق"
             error={errors.driverName}
           />
@@ -180,7 +156,7 @@ export const EditDeliveryModal = ({
             label="تاريخ التوصيل"
             type="date"
             value={formData.deliveryDate}
-            onChange={(e) => handleInputChange("deliveryDate", e.target.value)}
+            onChange={(e) => handleInputChange('deliveryDate', e.target.value)}
             error={errors.deliveryDate}
           />
 
@@ -188,7 +164,7 @@ export const EditDeliveryModal = ({
             label="وقت التوصيل"
             type="time"
             value={formData.deliveryTime}
-            onChange={(e) => handleInputChange("deliveryTime", e.target.value)}
+            onChange={(e) => handleInputChange('deliveryTime', e.target.value)}
             error={errors.deliveryTime}
           />
         </div>
@@ -210,15 +186,10 @@ export const EditDeliveryModal = ({
 
           <div className="space-y-4">
             {formData.fishTypes.map((fish, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg p-4"
-              >
+              <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-medium text-gray-700">
-                    {fish.type
-                      ? `${fish.type} - ${fish.weight} كجم - ${fish.pricePerKg} ج.م/كجم`
-                      : `نوع السمك ${index + 1}`}
+                    نوع السمك {index + 1}
                   </span>
                   {formData.fishTypes.length > 1 && (
                     <button
@@ -234,9 +205,7 @@ export const EditDeliveryModal = ({
                   <Input
                     placeholder="نوع السمك"
                     value={fish.type}
-                    onChange={(e) =>
-                      handleFishTypeChange(index, "type", e.target.value)
-                    }
+                    onChange={(e) => handleFishTypeChange(index, 'type', e.target.value)}
                     error={errors[`fishType_${index}`]}
                   />
                   <Input
@@ -244,9 +213,7 @@ export const EditDeliveryModal = ({
                     type="number"
                     step="0.1"
                     value={fish.weight}
-                    onChange={(e) =>
-                      handleFishTypeChange(index, "weight", e.target.value)
-                    }
+                    onChange={(e) => handleFishTypeChange(index, 'weight', e.target.value)}
                     error={errors[`weight_${index}`]}
                   />
                   <Input
@@ -254,9 +221,7 @@ export const EditDeliveryModal = ({
                     type="number"
                     step="0.01"
                     value={fish.pricePerKg}
-                    onChange={(e) =>
-                      handleFishTypeChange(index, "pricePerKg", e.target.value)
-                    }
+                    onChange={(e) => handleFishTypeChange(index, 'pricePerKg', e.target.value)}
                     error={errors[`price_${index}`]}
                   />
                 </div>
@@ -269,7 +234,9 @@ export const EditDeliveryModal = ({
           <Button variant="outline" onClick={handleClose}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit}>حفظ التغييرات</Button>
+          <Button onClick={handleSubmit}>
+            إضافة التوصيل
+          </Button>
         </div>
       </div>
     </Modal>

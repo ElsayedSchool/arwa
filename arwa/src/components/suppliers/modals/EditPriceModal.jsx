@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "../common/Modal";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+import { Modal } from "../../common/Modal";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
 
 export const EditPriceModal = ({ isOpen, onClose, onSave, supplier }) => {
   const [formData, setFormData] = useState({

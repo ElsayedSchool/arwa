@@ -1,7 +1,7 @@
 import React from 'react';
-import { Input } from '../common/Input';
-import { Button } from '../common/Button';
-import { SearchableDropdown } from '../common/SearchableDropdown';
+import { Input } from '../../ui/Input';
+import { Button } from '../../ui/Button';
+import { SearchableDropdown } from '../../common/SearchableDropdown';
 
 export const AddSupplierProductForm = ({ 
   onSubmit, 

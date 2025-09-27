@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "../common/Modal";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
+import { Modal } from "../../common/Modal";
+import { Input } from "../../ui/Input";
+import { Button } from "../../ui/Button";
 import { CreditCard } from "lucide-react";
 
 export const EditPaymentModal = ({ isOpen, onClose, onSave, supplier }) => {

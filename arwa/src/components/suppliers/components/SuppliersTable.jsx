@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Badge } from "../common/Badge";
-import { Button } from "../common/Button";
+import { Badge } from "../../common/Badge";
+import { Button } from "../../ui/Button";
 import { DollarSign, Calendar, CreditCard, MoreVertical } from "lucide-react";
 
 export const SuppliersTable = ({

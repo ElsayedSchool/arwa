@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
-import { Button } from "../ui/Button";
-import { Badge } from "../common/Badge";
+import { Button } from "../../ui/Button";
+import { Badge } from "../../common/Badge";
 
 export const DeliveriesTable = ({
   data,

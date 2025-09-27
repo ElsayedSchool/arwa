@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 // @ts-expect-error - JSX module import
-import { AddCategoryModal } from "./AddCategoryModal";
+import { AddCategoryModal } from "./modals/AddCategoryModal";
 // @ts-expect-error - JSX module import
-import { EditCategoryModal } from "./EditCategoryModal";
+import { EditCategoryModal } from "./modals/EditCategoryModal";
 import { TopNavigation } from "../common/TopNavigation";
 import {
   isNewMainCategory,

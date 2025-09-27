@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Package, Calendar, Check, X, Edit } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { Badge } from "../../common/Badge";
-import { EditOrderModal } from "./EditOrderModal";
+import { EditOrderModal } from "../modals/EditOrderModal";
 
 interface Order {
   id: number;

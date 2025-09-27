@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../common/Modal';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
+import { Modal } from '../../common/Modal';
+import { Input } from '../../ui/Input';
+import { Button } from '../../ui/Button';
 
 export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
   const [formData, setFormData] = useState({
