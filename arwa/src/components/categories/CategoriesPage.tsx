@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Edit,
@@ -8,12 +7,19 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-// @ts-expect-error - JSX module import
 import { Button } from "../ui/Button";
 // @ts-expect-error - JSX module import
 import { AddCategoryModal } from "./AddCategoryModal";
 // @ts-expect-error - JSX module import
 import { EditCategoryModal } from "./EditCategoryModal";
+import { TopNavigation } from "../common/TopNavigation";
+import {
+  isNewMainCategory,
+  isNewSubCategory,
+  isUpdateMainCategory,
+  isUpdateSubCategory,
+  isApiResponse,
+} from "../../utils/typeGuards";
 
 interface Category {
   id: number;
@@ -41,9 +47,11 @@ interface EditingItem {
   color?: string;
 }
 
-const CategoriesPage: React.FC = () => {
-  const navigate = useNavigate();
+interface ApiResponse {
+  data?: Category[];
+}
 
+const CategoriesPage: React.FC = () => {
   // Demo data for categories
   const demoCategories = useMemo<Category[]>(
     () => [
@@ -124,7 +132,11 @@ const CategoriesPage: React.FC = () => {
     []
   );
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  // Initialize with demo data immediately so the page shows categories on first render
+  const [categories, setCategories] = useState<Category[]>(() => {
+    console.log("Initializing categories with demo data:", demoCategories);
+    return demoCategories;
+  });
 
   const [expandedCategories, setExpandedCategories] = useState(
     new Set([1, 2, 3])
@@ -154,9 +166,27 @@ const CategoriesPage: React.FC = () => {
   };
 
   useEffect(() => {
-    // For testing, always use demo data
-    setCategories(demoCategories);
-  }, [demoCategories]);
+    let mounted = true;
+    // @ts-expect-error - API module import
+    import("../../utils/api").then(({ getCategories }) => {
+      getCategories()
+        .then((res: ApiResponse) => {
+          if (mounted) {
+            // API returns DTO-shaped array
+            setCategories(res.data || []);
+          }
+        })
+        .catch(() => {
+          // keep empty or fallback to local sample if desired
+        })
+        .finally(() => {
+          // API call completed
+        });
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleAddSubCategory = (mainCategoryId: number) => {
     setModalType("sub");
@@ -220,18 +250,22 @@ const CategoriesPage: React.FC = () => {
     }
   };
 
-  const handleSaveCategory = (categoryData: any) => {
-    if (modalType === "main") {
+  const handleSaveCategory = (categoryData: unknown) => {
+    if (modalType === "main" && isNewMainCategory(categoryData)) {
       // @ts-expect-error - JS module
       import("../../utils/api").then(({ upsertCategory }) => {
         upsertCategory({
           name: categoryData.name,
           description: categoryData.description,
         })
-          .then((res: any) => setCategories((prev) => [...prev, res.data]))
+          .then((res: unknown) => {
+            if (isApiResponse(res)) {
+              setCategories((prev) => [...prev, res.data as Category]);
+            }
+          })
           .catch(() => alert("خطأ أثناء إضافة الفئة"));
       });
-    } else {
+    } else if (modalType === "sub" && isNewSubCategory(categoryData)) {
       // @ts-expect-error - JS module
       import("../../utils/api").then(({ upsertCategory }) => {
         upsertCategory({
@@ -241,18 +275,23 @@ const CategoriesPage: React.FC = () => {
           character: categoryData.character,
           color: categoryData.color,
         })
-          .then((res: any) => {
-            // append returned subcategory (or reload)
-            setCategories((prev) =>
-              prev.map((cat) =>
-                cat.id === selectedMainCategory
-                  ? {
-                      ...cat,
-                      subcategories: [...(cat.subcategories || []), res.data],
-                    }
-                  : cat
-              )
-            );
+          .then((res: unknown) => {
+            if (isApiResponse(res)) {
+              // append returned subcategory (or reload)
+              setCategories((prev) =>
+                prev.map((cat) =>
+                  cat.id === selectedMainCategory
+                    ? {
+                        ...cat,
+                        subcategories: [
+                          ...(cat.subcategories || []),
+                          res.data as SubCategory,
+                        ],
+                      }
+                    : cat
+                )
+              );
+            }
           })
           .catch(() => alert("خطأ أثناء إضافة الفئة الفرعية"));
       });
@@ -260,37 +299,56 @@ const CategoriesPage: React.FC = () => {
     setShowAddModal(false);
   };
 
-  const handleUpdateCategory = (updatedData: any) => {
+  const handleUpdateCategory = (updatedData: unknown) => {
     if (!editingItem) return;
 
     // @ts-expect-error - JS module
     import("../../utils/api").then(({ upsertCategory }) => {
-      const payload: any = {
+      let payload: Record<string, unknown> = {
         id: editingItem.id,
-        name: updatedData.name,
-        description: updatedData.description,
       };
-      if (editingItem.type === "sub") {
-        payload.type = "sub";
-        payload.mainCategoryId = editingItem.mainCategoryId;
-        payload.character = updatedData.character;
-        payload.color = updatedData.color;
+
+      if (editingItem.type === "main" && isUpdateMainCategory(updatedData)) {
+        payload = {
+          ...payload,
+          name: updatedData.name,
+          description: updatedData.description,
+        };
+      } else if (
+        editingItem.type === "sub" &&
+        isUpdateSubCategory(updatedData)
+      ) {
+        payload = {
+          ...payload,
+          name: updatedData.name,
+          type: "sub",
+          mainCategoryId: editingItem.mainCategoryId,
+          character: updatedData.character,
+          color: updatedData.color,
+        };
       }
+
       upsertCategory(payload)
         .then(() => {
           // naive local update: ideally reload categories
           setCategories((prev) =>
             prev.map((cat) => {
-              if (editingItem.type === "main") {
+              if (
+                editingItem.type === "main" &&
+                isUpdateMainCategory(updatedData)
+              ) {
                 return cat.id === editingItem.id
                   ? {
                       ...cat,
                       name: updatedData.name,
-                      description: updatedData.description,
+                      description: updatedData.description || "",
                     }
                   : cat;
               }
-              if (cat.id === editingItem.mainCategoryId) {
+              if (
+                cat.id === editingItem.mainCategoryId &&
+                isUpdateSubCategory(updatedData)
+              ) {
                 return {
                   ...cat,
                   subcategories: (cat.subcategories || []).map((sub) =>
@@ -321,6 +379,9 @@ const CategoriesPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
+        <div className="flex items-center justify-end mb-8">
+          <TopNavigation currentPage="categories" />
+        </div>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">إدارة الفئات</h1>
@@ -329,12 +390,6 @@ const CategoriesPage: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate("/")}
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              العودة للرئيسية
-            </button>
             <Button
               onClick={handleAddMainCategory}
               className="inline-flex items-center"
@@ -346,115 +401,128 @@ const CategoriesPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {categories.map((category) => (
-            <div key={category.id} className="bg-white rounded-lg shadow-sm">
-              {/* Main Category Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => toggleCategory(category.id)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                    >
-                      {expandedCategories.has(category.id) ? (
-                        <ChevronDown size={20} className="text-gray-500" />
-                      ) : (
-                        <ChevronRight size={20} className="text-gray-500" />
-                      )}
-                    </button>
-                    <div className="p-3 rounded-full bg-blue-100 mr-3">
-                      <Grid3X3 className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {category.name}
-                      </h3>
-                      <p className="text-gray-600">{category.description}</p>
-                      <span className="text-sm text-gray-500">
-                        {category.productCount} منتج •{" "}
-                        {category.subcategories.length} فئة فرعية
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      onClick={() => handleAddSubCategory(category.id)}
-                      variant="outline"
-                      size="sm"
-                      className="inline-flex items-center"
-                    >
-                      <Plus size={16} className="ml-1" />
-                      فئة فرعية
-                    </Button>
-                    <button
-                      onClick={() => handleEditMainCategory(category)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMainCategory(category.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Subcategories */}
-              {expandedCategories.has(category.id) && (
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {category.subcategories.map((subcategory) => (
-                      <div
-                        key={subcategory.id}
-                        className="border border-gray-200 rounded-lg p-4"
+          {(() => {
+            console.log("Categories to render:", categories);
+            return null;
+          })()}
+          {categories.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <p className="text-gray-600">لا توجد فئات لعرضها</p>
+            </div>
+          ) : (
+            categories.map((category) => (
+              <div key={category.id} className="bg-white rounded-lg shadow-sm">
+                {/* Main Category Header */}
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => toggleCategory(category.id)}
+                        className="p-1 hover:bg-gray-100 rounded"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center">
-                            <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                              style={{ backgroundColor: subcategory.color }}
-                            >
-                              {subcategory.character}
-                            </div>
-                            <span className="font-medium text-gray-900 mr-3">
-                              {subcategory.name}
-                            </span>
-                          </div>
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() =>
-                                handleEditSubCategory(subcategory, category.id)
-                              }
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteSubCategory(
-                                  category.id,
-                                  subcategory.id
-                                )
-                              }
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
+                        {expandedCategories.has(category.id) ? (
+                          <ChevronDown size={20} className="text-gray-500" />
+                        ) : (
+                          <ChevronRight size={20} className="text-gray-500" />
+                        )}
+                      </button>
+                      <div className="p-3 rounded-full bg-blue-100 mr-3">
+                        <Grid3X3 className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {category.name}
+                        </h3>
+                        <p className="text-gray-600">{category.description}</p>
                         <span className="text-sm text-gray-500">
-                          {subcategory.productCount} منتج
+                          {category.productCount} منتج •{" "}
+                          {category.subcategories.length} فئة فرعية
                         </span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        onClick={() => handleAddSubCategory(category.id)}
+                        variant="outline"
+                        size="sm"
+                        className="inline-flex items-center"
+                      >
+                        <Plus size={16} className="ml-1" />
+                        فئة فرعية
+                      </Button>
+                      <button
+                        onClick={() => handleEditMainCategory(category)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMainCategory(category.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Subcategories */}
+                {expandedCategories.has(category.id) && (
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {category.subcategories.map((subcategory) => (
+                        <div
+                          key={subcategory.id}
+                          className="border border-gray-200 rounded-lg p-4"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center">
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                                style={{ backgroundColor: subcategory.color }}
+                              >
+                                {subcategory.character}
+                              </div>
+                              <span className="font-medium text-gray-900 mr-3">
+                                {subcategory.name}
+                              </span>
+                            </div>
+                            <div className="flex space-x-1">
+                              <button
+                                onClick={() =>
+                                  handleEditSubCategory(
+                                    subcategory,
+                                    category.id
+                                  )
+                                }
+                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteSubCategory(
+                                    category.id,
+                                    subcategory.id
+                                  )
+                                }
+                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            {subcategory.productCount} منتج
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* Add Category Modal */}

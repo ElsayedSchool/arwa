@@ -1,44 +1,59 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Users } from "lucide-react";
+import { TopNavigation } from "../common/TopNavigation";
 
 const AnalyticsPage: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
+          <TopNavigation currentPage="analytics" />
           <h1 className="text-3xl font-bold text-gray-900">التحليلات</h1>
-          <button
-            onClick={() => navigate("/")}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            العودة للرئيسية
-          </button>
+          <p className="text-gray-600 mt-2">تحليل البيانات والتقارير المفصلة</p>
         </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="text-center">
-            <BarChart3 className="h-16 w-16 text-red-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              صفحة التحليلات
-            </h2>
-            <p className="text-gray-600 mb-6">
-              هذه الصفحة قيد التطوير. سيتم إضافة التحليلات والبيانات قريباً.
-            </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">
-                <strong>الميزات القادمة:</strong>
-              </p>
-              <ul className="text-red-700 mt-2 text-right">
-                <li>• تحليل المبيعات</li>
-                <li>• إحصائيات الأداء</li>
-                <li>• تقارير مفصلة</li>
-                <li>• رسوم بيانية تفاعلية</li>
-              </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Sales Analytics */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <BarChart3 className="h-5 w-5 ml-2" />
+              تحليل المبيعات
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">مبيعات هذا الشهر</span>
+                <span className="font-semibold">45,230 ج.م</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">نمو المبيعات</span>
+                <span className="font-semibold text-green-600">+12.5%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">أفضل منتج</span>
+                <span className="font-semibold">بلطي</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Analytics */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Users className="h-5 w-5 ml-2" />
+              تحليل العملاء
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">إجمالي العملاء</span>
+                <span className="font-semibold">156</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">عملاء جدد هذا الشهر</span>
+                <span className="font-semibold text-blue-600">23</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">معدل الاحتفاظ</span>
+                <span className="font-semibold">87%</span>
+              </div>
             </div>
           </div>
         </div>

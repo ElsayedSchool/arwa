@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -9,7 +9,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Modal } from "../common/Modal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { EditCategoryModal } from "./EditCategoryModal";
 

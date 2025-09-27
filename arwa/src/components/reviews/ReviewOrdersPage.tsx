@@ -1,18 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-// @ts-expect-error - JSX modules
-import { ClientSelector } from "./components/ClientSelector.jsx";
-// @ts-expect-error - JSX modules
-import { OrdersToConfirm } from "./components/OrdersToConfirm.jsx";
-// @ts-expect-error - JSX modules
-import { ClientDebtSummary } from "./components/ClientDebtSummary.jsx";
-// @ts-expect-error - JSX modules
-import { PaymentEntry } from "./components/PaymentEntry.jsx";
-// @ts-expect-error - JSX modules
-import { ClientOrderHistory } from "./components/ClientOrderHistory.jsx";
-// @ts-expect-error - JSX modules
-import { Button } from "../ui/Button.jsx";
+import { ClientSelector } from "./components/ClientSelector.tsx";
+import { OrdersToConfirm } from "./components/OrdersToConfirm.tsx";
+import { ClientDebtSummary } from "./components/ClientDebtSummary.tsx";
+import { PaymentEntry } from "./components/PaymentEntry.tsx";
+import { ClientOrderHistory } from "./components/ClientOrderHistory.tsx";
+import { Button } from "../ui/Button.tsx";
 import { CheckCircle } from "lucide-react";
+import { TopNavigation } from "../common/TopNavigation";
 
 interface Order {
   id: number;
@@ -48,8 +42,6 @@ interface PaymentData {
 }
 
 const ReviewOrdersPage: React.FC = () => {
-  const navigate = useNavigate();
-
   // Demo data for orders (including historical orders)
   const [demoOrders] = useState<Order[]>([
     // Current pending orders
@@ -326,32 +318,7 @@ const ReviewOrdersPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             مراجعة طلبات العملاء
           </h1>
-          <div className="text-sm text-gray-600">
-            <span
-              onClick={() => navigate("/suppliers")}
-              className="cursor-pointer hover:text-blue-600 ml-4"
-            >
-              الموردين
-            </span>
-            <span
-              onClick={() => navigate("/orders")}
-              className="cursor-pointer hover:text-blue-600 ml-4"
-            >
-              الطلبات
-            </span>
-            <span
-              onClick={() => navigate("/categories")}
-              className="cursor-pointer hover:text-blue-600 ml-4"
-            >
-              الفئات
-            </span>
-            <span
-              onClick={() => navigate("/")}
-              className="cursor-pointer hover:text-blue-600"
-            >
-              الرئيسية
-            </span>
-          </div>
+          <TopNavigation currentPage="reviews" showSectionLinks={true} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -18,42 +18,42 @@ const LoginPage = lazy(() =>
   }))
 );
 const SuppliersPage = lazy(() =>
-  import("./components/suppliers/SuppliersPage").then((module) => ({
+  import("./components/suppliers/SuppliersPage.tsx").then((module) => ({
     default: module.SuppliersPage,
   }))
 );
 const SellersPage = lazy(() =>
-  import("./components/sellers/SellersPage").then((module) => ({
+  import("./components/sellers/SellersPage.tsx").then((module) => ({
     default: module.SellersPage,
   }))
 );
 const OrdersPage = lazy(() =>
-  import("./components/orders/OrdersPage").then((module) => ({
+  import("./components/orders/OrdersPage.tsx").then((module) => ({
     default: module.OrdersPage,
   }))
 );
 const CategoriesPage = lazy(() =>
-  import("./components/categories/CategoriesPage").then((module) => ({
+  import("./components/categories/CategoriesPage.tsx").then((module) => ({
     default: module.CategoriesPage,
   }))
 );
 const ProfitsPage = lazy(() =>
-  import("./components/profits/ProfitsPage").then((module) => ({
+  import("./components/profits/ProfitsPage.tsx").then((module) => ({
     default: module.ProfitsPage,
   }))
 );
 const AnalyticsPage = lazy(() =>
-  import("./components/analytics/AnalyticsPage").then((module) => ({
+  import("./components/analytics/AnalyticsPage.tsx").then((module) => ({
     default: module.AnalyticsPage,
   }))
 );
 const ReviewOrdersPage = lazy(() =>
-  import("./components/reviews/ReviewOrdersPage").then((module) => ({
+  import("./components/reviews/ReviewOrdersPage.tsx").then((module) => ({
     default: module.ReviewOrdersPage,
   }))
 );
 const DeliveriesPage = lazy(() =>
-  import("./components/deliveries/DeliveriesPage").then((module) => ({
+  import("./components/deliveries/DeliveriesPage.tsx").then((module) => ({
     default: module.DeliveriesPage,
   }))
 );
@@ -114,6 +114,8 @@ function App() {
               <Route path="reviews" element={<ReviewOrdersPage />} />
               <Route path="deliveries" element={<DeliveriesPage />} />
             </Route>
+            {/* 404 catch-all - redirect to dashboard home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </Router>
