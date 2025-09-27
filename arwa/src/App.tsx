@@ -57,6 +57,36 @@ const DeliveriesPage = lazy(() =>
     default: module.DeliveriesPage,
   }))
 );
+const ClientsPage = lazy(() =>
+  import("./components/clients/ClientsPage.tsx")
+);
+const EmployeesPage = lazy(() =>
+  import("./components/employees/EmployeesPage.tsx")
+);
+const ClientPaymentsPage = lazy(() =>
+  import("./components/client-payments/ClientPaymentsPage.tsx")
+);
+const InventoryPage = lazy(() =>
+  import("./components/inventory/InventoryPage.tsx")
+);
+const PricingPage = lazy(() =>
+  import("./components/pricing/PricingPage.tsx")
+);
+const PeriodProfitsPage = lazy(() =>
+  import("./components/period-profits/PeriodProfitsPage.tsx")
+);
+const ClientDebtsPage = lazy(() =>
+  import("./components/client-debts/ClientDebtsPage.tsx")
+);
+const InventoryMovementPage = lazy(() =>
+  import("./components/inventory-movement/InventoryMovementPage.tsx")
+);
+const SettingsPage = lazy(() =>
+  import("./components/settings/SettingsPage.tsx")
+);
+const UsersPage = lazy(() =>
+  import("./components/users/UsersPage.tsx")
+);
 
 // Loading component
 const LoadingSpinner = () => (
@@ -113,6 +143,16 @@ function App() {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="reviews" element={<ReviewOrdersPage />} />
               <Route path="deliveries" element={<DeliveriesPage />} />
+              <Route path="clients" element={<ClientsPage />} />
+              <Route path="employees" element={<EmployeesPage />} />
+              <Route path="client-payments" element={<ClientPaymentsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="pricing" element={<PricingPage />} />
+              <Route path="period-profits" element={<PeriodProfitsPage />} />
+              <Route path="client-debts" element={<ClientDebtsPage />} />
+              <Route path="inventory-movement" element={<InventoryMovementPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="users" element={<UsersPage />} />
             </Route>
             {/* 404 catch-all - redirect to dashboard home */}
             <Route path="*" element={<Navigate to="/" replace />} />
