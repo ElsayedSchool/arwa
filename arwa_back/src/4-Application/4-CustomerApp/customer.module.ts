@@ -5,8 +5,10 @@ import { GetCustomerByIdQueryHandler } from "./Queries/GetCustomerByIdQuery/getC
 import { GetCustomerOrdersQueryHandler } from "./Queries/GetCustomerOrdersQuery/getCustomerOrders.Handler";
 import { UpsertCustomerCommandHandler } from "./Commands/UpsertCustomerCommand/upsertCustomer.Handler";
 import { DeleteCustomerCommandHandler } from "./Commands/DeleteCustomerCommand/deleteCustomer.Handler";
+import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.module";
 
 @Module({
+  imports: [RepositoryModule],
   controllers: [CustomerController],
   providers: [
     GetAllCustomersQueryHandler,

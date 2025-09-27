@@ -57,12 +57,14 @@ const DeliveriesPage = lazy(() =>
     default: module.DeliveriesPage,
   }))
 );
-const ClientsPage = lazy(() => import("./components/clients/ClientsPage.tsx"));
+const CustomersPage = lazy(
+  () => import("./components/customers/CustomersPage.tsx")
+);
 const EmployeesPage = lazy(
   () => import("./components/employees/EmployeesPage.tsx")
 );
-const ClientPaymentsPage = lazy(
-  () => import("./components/client-payments/ClientPaymentsPage.tsx")
+const CustomerPaymentsPage = lazy(
+  () => import("./components/customer-payments/CustomerPaymentsPage.tsx")
 );
 const InventoryPage = lazy(
   () => import("./components/inventory/InventoryPage.tsx")
@@ -71,8 +73,8 @@ const PricingPage = lazy(() => import("./components/pricing/PricingPage.tsx"));
 const PeriodProfitsPage = lazy(
   () => import("./components/period-profits/PeriodProfitsPage.tsx")
 );
-const ClientDebtsPage = lazy(
-  () => import("./components/client-debts/ClientDebtsPage.tsx")
+const CustomerDebtsPage = lazy(
+  () => import("./components/customer-debts/CustomerDebtsPage.tsx")
 );
 const InventoryMovementPage = lazy(
   () => import("./components/inventory-movement/InventoryMovementPage.tsx")
@@ -144,13 +146,16 @@ function App() {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="reviews" element={<ReviewOrdersPage />} />
               <Route path="deliveries" element={<DeliveriesPage />} />
-              <Route path="clients" element={<ClientsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
               <Route path="employees" element={<EmployeesPage />} />
-              <Route path="client-payments" element={<ClientPaymentsPage />} />
+              <Route
+                path="customer-payments"
+                element={<CustomerPaymentsPage />}
+              />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="pricing" element={<PricingPage />} />
               <Route path="period-profits" element={<PeriodProfitsPage />} />
-              <Route path="client-debts" element={<ClientDebtsPage />} />
+              <Route path="customer-debts" element={<CustomerDebtsPage />} />
               <Route
                 path="inventory-movement"
                 element={<InventoryMovementPage />}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import ExcelJS from "exceljs";
 import {
   ArrowLeft,
@@ -9,16 +9,55 @@ import {
   Users,
   CreditCard,
 } from "lucide-react";
+// @ts-expect-error: JS/JSX module without TypeScript types
 import { SuppliersTable } from "../suppliers/components/SuppliersTable";
+// @ts-expect-error: JS/JSX module without TypeScript types
 import { AddSupplierProductForm } from "../suppliers/components/AddSupplierProductForm";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Badge } from "../common/Badge";
+// @ts-expect-error: JS/JSX module without TypeScript types
 import { EditPaymentModal } from "../suppliers/modals/EditPaymentModal";
+// @ts-expect-error: JS/JSX module without TypeScript types
 import { EditPriceModal } from "../suppliers/modals/EditPriceModal";
 
+// Types
+type PaymentStatus = "paid" | "partial" | "unpaid";
+
+interface SupplierPaymentHistoryItem {
+  amount: number;
+  date: string; // ISO date string
+  notes?: string;
+}
+
+interface SupplierItem {
+  id: number;
+  supplierName: string;
+  fishType: string;
+  suppliedKg: number;
+  amountSold: number;
+  supplyDate: string; // ISO date string
+  pricePerKg: number;
+  totalCost?: number;
+  amountPaid?: number;
+  paymentStatus?: PaymentStatus;
+  dueDate?: string | null;
+  lastPaymentDate?: string;
+  paymentHistory?: SupplierPaymentHistoryItem[];
+}
+
+interface PaymentData {
+  amountPaid: number;
+  paymentStatus: PaymentStatus;
+  dueDate: string | null;
+}
+
+interface PriceData {
+  pricePerKg: number;
+}
+
 // Mock data for suppliers with payment tracking
-const initialSuppliersData = [
+const initialSuppliersData: SupplierItem[] = [
   {
     id: 1,
     supplierName: "أحمد محمد",
@@ -86,20 +125,28 @@ const SupplierAnalysisPage = ({
 }: {
   userRole?: string;
 }) => {
-  const [suppliersData, setSuppliersData] = useState(initialSuppliersData);
+  const [suppliersData, setSuppliersData] =
+    useState<SupplierItem[]>(initialSuppliersData);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [selectedFishType, setSelectedFishType] = useState("");
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<
+    PaymentStatus | ""
+  >("");
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({
+    from: "",
+    to: "",
+  });
   const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
   const [showEditPriceModal, setShowEditPriceModal] = useState(false);
   const [selectedSupplierForPayment, setSelectedSupplierForPayment] =
-    useState(null);
+    useState<SupplierItem | null>(null);
   const [selectedSupplierForPrice, setSelectedSupplierForPrice] =
-    useState(null);
-  const [dateFilter, setDateFilter] = useState("all");
+    useState<SupplierItem | null>(null);
+  const [dateFilter, setDateFilter] = useState<
+    "all" | "today" | "specific" | "range"
+  >("all");
   const [specificDate, setSpecificDate] = useState("");
   // Get unique suppliers and fish types for filters
   const uniqueSuppliers = [
@@ -110,7 +157,7 @@ const SupplierAnalysisPage = ({
   ];
 
   // Filter data based on search and filters
-  const filteredData = useMemo(() => {
+  const filteredData = useMemo<SupplierItem[]>(() => {
     return suppliersData.filter((item) => {
       const matchesSearch =
         item.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -204,7 +251,10 @@ const SupplierAnalysisPage = ({
     };
   }, [filteredData]);
 
-  const getStockStatus = (supplied, sold) => {
+  const getStockStatus = (
+    supplied: number,
+    sold: number
+  ): { status: string; variant: "success" | "warning" | "danger" } => {
     const remaining = supplied - sold;
     const percentage = (remaining / supplied) * 100;
 
@@ -214,7 +264,7 @@ const SupplierAnalysisPage = ({
     return { status: "نفد المخزون", variant: "danger" };
   };
 
-  const handleAddSupplier = (newSupplier) => {
+  const handleAddSupplier = (newSupplier: SupplierItem) => {
     setSuppliersData((prev) => [...prev, newSupplier]);
     setShowAddForm(false);
   };
@@ -270,7 +320,7 @@ const SupplierAnalysisPage = ({
     ];
 
     // Add filter info to worksheet
-    filterInfo.forEach((row, index) => {
+    filterInfo.forEach((row) => {
       worksheet.addRow(row);
     });
 
@@ -328,59 +378,7 @@ const SupplierAnalysisPage = ({
     window.URL.revokeObjectURL(url);
   };
 
-  const exportTableDataCSV = () => {
-    const headers = [
-      "المورد",
-      "نوع السمك",
-      "تاريخ التوريد",
-      "الكمية المورّدة (كجم)",
-      "الكمية المباعة (كجم)",
-      "الكمية المتبقية (كجم)",
-      "السعر/كجم (ج.م)",
-      "التكلفة الإجمالية (ج.م)",
-      "المبلغ المدفوع (ج.م)",
-      "المبلغ المتبقي (ج.م)",
-      "حالة الدفع",
-      "تاريخ الاستحقاق",
-    ];
-
-    const csvData = filteredData.map((item) => {
-      const totalCost =
-        item.totalCost || item.suppliedKg * item.pricePerKg || 0;
-      const remainingAmount = totalCost - (item.amountPaid || 0);
-
-      return [
-        item.supplierName,
-        item.fishType,
-        item.supplyDate,
-        item.suppliedKg,
-        item.amountSold,
-        item.suppliedKg - item.amountSold,
-        item.pricePerKg,
-        totalCost,
-        item.amountPaid || 0,
-        remainingAmount,
-        getPaymentStatusText(item.paymentStatus || "unpaid"),
-        item.dueDate || "-",
-      ];
-    });
-
-    const csvContent = [headers, ...csvData]
-      .map((row) => row.map((field) => `"${field}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["\ufeff" + csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `suppliers_table_${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+  // CSV export function was removed because it was unused; re-add when needed.
 
   const exportFullPageData = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -497,38 +495,42 @@ const SupplierAnalysisPage = ({
     window.URL.revokeObjectURL(url);
   };
 
-  const handleUpdatePayment = (supplierId, paymentData) => {
-    setSuppliersData((prev) =>
-      prev.map((supplier) =>
-        supplier.id === supplierId
-          ? {
-              ...supplier,
-              amountPaid: paymentData.amountPaid,
-              paymentStatus: paymentData.paymentStatus,
-              dueDate: paymentData.dueDate,
-              lastPaymentDate: new Date().toISOString().split("T")[0],
-              paymentHistory: [
-                ...(supplier.paymentHistory || []),
-                {
-                  amount: paymentData.amountPaid - (supplier.amountPaid || 0),
-                  date: new Date().toISOString().split("T")[0],
-                  notes: "تعديل الدفع",
-                },
-              ].filter((payment) => payment.amount > 0),
-            }
-          : supplier
-      )
+  const handleUpdatePayment = (
+    supplierId: number,
+    paymentData: PaymentData
+  ): void => {
+    setSuppliersData(
+      (prev) =>
+        prev.map((supplier) =>
+          supplier.id === supplierId
+            ? {
+                ...supplier,
+                amountPaid: paymentData.amountPaid,
+                paymentStatus: paymentData.paymentStatus,
+                dueDate: paymentData.dueDate,
+                lastPaymentDate: new Date().toISOString().split("T")[0],
+                paymentHistory: [
+                  ...(supplier.paymentHistory || []),
+                  {
+                    amount: paymentData.amountPaid - (supplier.amountPaid || 0),
+                    date: new Date().toISOString().split("T")[0],
+                    notes: "تعديل الدفع",
+                  },
+                ].filter((payment) => payment.amount > 0),
+              }
+            : supplier
+        ) as SupplierItem[]
     );
     setShowEditPaymentModal(false);
     setSelectedSupplierForPayment(null);
   };
 
-  const handleEditPayment = (supplier) => {
+  const handleEditPayment = (supplier: SupplierItem) => {
     setSelectedSupplierForPayment(supplier);
     setShowEditPaymentModal(true);
   };
 
-  const getPaymentStatusText = (status) => {
+  const getPaymentStatusText = (status: PaymentStatus | undefined | string) => {
     switch (status) {
       case "paid":
         return "مدفوع بالكامل";
@@ -541,7 +543,9 @@ const SupplierAnalysisPage = ({
     }
   };
 
-  const getPaymentStatusVariant = (status) => {
+  const getPaymentStatusVariant = (
+    status: PaymentStatus | undefined | string
+  ): "success" | "warning" | "danger" | "secondary" => {
     switch (status) {
       case "paid":
         return "success";
@@ -554,12 +558,15 @@ const SupplierAnalysisPage = ({
     }
   };
 
-  const handleEditPrice = (supplier) => {
+  const handleEditPrice = (supplier: SupplierItem) => {
     setSelectedSupplierForPrice(supplier);
     setShowEditPriceModal(true);
   };
 
-  const handleUpdatePrice = (supplierId, priceData) => {
+  const handleUpdatePrice = (
+    supplierId: number,
+    priceData: PriceData
+  ): void => {
     setSuppliersData((prev) =>
       prev.map((supplier) =>
         supplier.id === supplierId
@@ -834,7 +841,9 @@ const SupplierAnalysisPage = ({
 
             <select
               value={paymentStatusFilter}
-              onChange={(e) => setPaymentStatusFilter(e.target.value)}
+              onChange={(e) =>
+                setPaymentStatusFilter(e.target.value as PaymentStatus | "")
+              }
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">جميع حالات الدفع</option>
@@ -845,7 +854,11 @@ const SupplierAnalysisPage = ({
 
             <select
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) =>
+                setDateFilter(
+                  e.target.value as "all" | "today" | "specific" | "range"
+                )
+              }
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">جميع التواريخ</option>

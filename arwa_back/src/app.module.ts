@@ -13,6 +13,7 @@ import { join } from "path";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { databaseConfig } from "./1-Core/Configurations/database.config";
 import { SeedingModule } from "./4-Application/21-SeedingApp/Seeding.Module";
+import { CustomerModule } from "./4-Application/4-CustomerApp/customer.module";
 import { UserManagerModule } from "./4-Application/1-UserManagerApp/userManager.module";
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from "nestjs-i18n";
 import { existsSync } from "fs";
@@ -61,6 +62,7 @@ import { existsSync } from "fs";
     UserProfileModule,
     UserManagerModule,
     SeedingModule,
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [AppService, BcryptService],
