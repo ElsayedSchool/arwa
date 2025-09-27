@@ -43,7 +43,9 @@ const PeriodProfitsPage: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الأرباح هذا الشهر</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي الأرباح هذا الشهر
+                </p>
                 <p className="text-2xl font-bold text-gray-900">45,230 ج.م</p>
               </div>
             </div>
@@ -55,7 +57,9 @@ const PeriodProfitsPage: React.FC = () => {
                 <BarChart3 className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">متوسط الربح اليومي</p>
+                <p className="text-sm font-medium text-gray-600">
+                  متوسط الربح اليومي
+                </p>
                 <p className="text-2xl font-bold text-gray-900">1,507 ج.م</p>
               </div>
             </div>
@@ -80,7 +84,9 @@ const PeriodProfitsPage: React.FC = () => {
               </div>
               <div className="mr-4">
                 <p className="text-sm font-medium text-gray-600">أفضل فترة</p>
-                <p className="text-2xl font-bold text-gray-900">الأسبوع الماضي</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  الأسبوع الماضي
+                </p>
               </div>
             </div>
           </div>
@@ -89,7 +95,9 @@ const PeriodProfitsPage: React.FC = () => {
         {/* Period Profits Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">تقارير الأرباح</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              تقارير الأرباح
+            </h3>
             <div className="text-center py-12">
               <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض تقارير الأرباح هنا</p>

@@ -12,7 +12,9 @@ const UsersPage: React.FC = () => {
           <TopNavigation currentPage="users" />
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">إدارة المستخدمين</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                إدارة المستخدمين
+              </h1>
               <p className="text-gray-600 mt-2">إدارة المستخدمين والصلاحيات</p>
             </div>
             <Button className="flex items-center gap-2">
@@ -43,7 +45,9 @@ const UsersPage: React.FC = () => {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي المستخدمين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي المستخدمين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">24</p>
               </div>
             </div>
@@ -55,7 +59,9 @@ const UsersPage: React.FC = () => {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">مستخدمين نشطين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  مستخدمين نشطين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">22</p>
               </div>
             </div>
@@ -67,7 +73,9 @@ const UsersPage: React.FC = () => {
                 <Shield className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">مدراء النظام</p>
+                <p className="text-sm font-medium text-gray-600">
+                  مدراء النظام
+                </p>
                 <p className="text-2xl font-bold text-gray-900">3</p>
               </div>
             </div>
@@ -79,7 +87,9 @@ const UsersPage: React.FC = () => {
                 <Users className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">مستخدمين جدد هذا الشهر</p>
+                <p className="text-sm font-medium text-gray-600">
+                  مستخدمين جدد هذا الشهر
+                </p>
                 <p className="text-2xl font-bold text-gray-900">2</p>
               </div>
             </div>
@@ -89,7 +99,9 @@ const UsersPage: React.FC = () => {
         {/* Users Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">قائمة المستخدمين</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              قائمة المستخدمين
+            </h3>
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض قائمة المستخدمين هنا</p>

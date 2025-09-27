@@ -12,7 +12,9 @@ const EmployeesPage: React.FC = () => {
           <TopNavigation currentPage="employees" />
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">الموظفون والرواتب</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                الموظفون والرواتب
+              </h1>
               <p className="text-gray-600 mt-2">إدارة الموظفين ورواتبهم</p>
             </div>
             <Button className="flex items-center gap-2">
@@ -43,7 +45,9 @@ const EmployeesPage: React.FC = () => {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الموظفين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي الموظفين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">24</p>
               </div>
             </div>
@@ -55,7 +59,9 @@ const EmployeesPage: React.FC = () => {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">موظفين نشطين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  موظفين نشطين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">22</p>
               </div>
             </div>
@@ -67,7 +73,9 @@ const EmployeesPage: React.FC = () => {
                 <DollarSign className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الرواتب الشهرية</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي الرواتب الشهرية
+                </p>
                 <p className="text-2xl font-bold text-gray-900">45,000 ج.م</p>
               </div>
             </div>
@@ -79,7 +87,9 @@ const EmployeesPage: React.FC = () => {
                 <Users className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">متوسط الراتب</p>
+                <p className="text-sm font-medium text-gray-600">
+                  متوسط الراتب
+                </p>
                 <p className="text-2xl font-bold text-gray-900">1,875 ج.م</p>
               </div>
             </div>
@@ -89,7 +99,9 @@ const EmployeesPage: React.FC = () => {
         {/* Employees Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">قائمة الموظفين</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              قائمة الموظفين
+            </h3>
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض قائمة الموظفين هنا</p>

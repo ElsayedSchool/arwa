@@ -43,7 +43,9 @@ const PricingPage: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">متوسط السعر للكيلو</p>
+                <p className="text-sm font-medium text-gray-600">
+                  متوسط السعر للكيلو
+                </p>
                 <p className="text-2xl font-bold text-gray-900">52 ج.م</p>
               </div>
             </div>
@@ -79,7 +81,9 @@ const PricingPage: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">تغير السعر اليوم</p>
+                <p className="text-sm font-medium text-gray-600">
+                  تغير السعر اليوم
+                </p>
                 <p className="text-2xl font-bold text-green-600">+2.5%</p>
               </div>
             </div>
@@ -89,7 +93,9 @@ const PricingPage: React.FC = () => {
         {/* Pricing Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">أسعار اليوم</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              أسعار اليوم
+            </h3>
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض أسعار اليوم هنا</p>

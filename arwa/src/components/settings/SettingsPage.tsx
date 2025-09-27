@@ -12,7 +12,9 @@ const SettingsPage: React.FC = () => {
           <TopNavigation currentPage="settings" />
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">إعدادات النظام</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                إعدادات النظام
+              </h1>
               <p className="text-gray-600 mt-2">إعدادات النظام والتكوين</p>
             </div>
             <Button className="flex items-center gap-2">
@@ -43,7 +45,9 @@ const SettingsPage: React.FC = () => {
                 <Settings className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إعدادات النظام</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إعدادات النظام
+                </p>
                 <p className="text-2xl font-bold text-gray-900">24</p>
               </div>
             </div>
@@ -55,7 +59,9 @@ const SettingsPage: React.FC = () => {
                 <Grid3X3 className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إعدادات المستخدمين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إعدادات المستخدمين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">8</p>
               </div>
             </div>
@@ -67,7 +73,9 @@ const SettingsPage: React.FC = () => {
                 <Settings className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إعدادات الأمان</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إعدادات الأمان
+                </p>
                 <p className="text-2xl font-bold text-gray-900">6</p>
               </div>
             </div>
@@ -79,7 +87,9 @@ const SettingsPage: React.FC = () => {
                 <Grid3X3 className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إعدادات أخرى</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إعدادات أخرى
+                </p>
                 <p className="text-2xl font-bold text-gray-900">12</p>
               </div>
             </div>
@@ -89,7 +99,9 @@ const SettingsPage: React.FC = () => {
         {/* Settings Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">إعدادات النظام</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              إعدادات النظام
+            </h3>
             <div className="text-center py-12">
               <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض إعدادات النظام هنا</p>

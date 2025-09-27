@@ -12,8 +12,12 @@ const ClientDebtsPage: React.FC = () => {
           <TopNavigation currentPage="client-debts" />
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">ديون ومدفوعات العملاء</h1>
-              <p className="text-gray-600 mt-2">متابعة ديون العملاء ومدفوعاتهم</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                ديون ومدفوعات العملاء
+              </h1>
+              <p className="text-gray-600 mt-2">
+                متابعة ديون العملاء ومدفوعاتهم
+              </p>
             </div>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -43,7 +47,9 @@ const ClientDebtsPage: React.FC = () => {
                 <DollarSign className="h-6 w-6 text-red-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الديون المستحقة</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي الديون المستحقة
+                </p>
                 <p className="text-2xl font-bold text-gray-900">28,450 ج.م</p>
               </div>
             </div>
@@ -55,7 +61,9 @@ const ClientDebtsPage: React.FC = () => {
                 <CreditCard className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">عدد العملاء المدينين</p>
+                <p className="text-sm font-medium text-gray-600">
+                  عدد العملاء المدينين
+                </p>
                 <p className="text-2xl font-bold text-gray-900">12</p>
               </div>
             </div>
@@ -67,7 +75,9 @@ const ClientDebtsPage: React.FC = () => {
                 <DollarSign className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">المدفوعات هذا الشهر</p>
+                <p className="text-sm font-medium text-gray-600">
+                  المدفوعات هذا الشهر
+                </p>
                 <p className="text-2xl font-bold text-gray-900">15,200 ج.م</p>
               </div>
             </div>
@@ -79,7 +89,9 @@ const ClientDebtsPage: React.FC = () => {
                 <DollarSign className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">متوسط الدين للعميل</p>
+                <p className="text-sm font-medium text-gray-600">
+                  متوسط الدين للعميل
+                </p>
                 <p className="text-2xl font-bold text-gray-900">2,371 ج.م</p>
               </div>
             </div>
@@ -89,10 +101,14 @@ const ClientDebtsPage: React.FC = () => {
         {/* Client Debts Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">تفاصيل الديون والمدفوعات</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              تفاصيل الديون والمدفوعات
+            </h3>
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">سيتم عرض تفاصيل الديون والمدفوعات هنا</p>
+              <p className="text-gray-500">
+                سيتم عرض تفاصيل الديون والمدفوعات هنا
+              </p>
               <p className="text-sm text-gray-400 mt-2">قريباً - تحت التطوير</p>
             </div>
           </div>

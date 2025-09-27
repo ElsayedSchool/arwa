@@ -43,7 +43,9 @@ const InventoryMovementPage: React.FC = () => {
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي الواردات اليوم</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي الواردات اليوم
+                </p>
                 <p className="text-2xl font-bold text-gray-900">450 كجم</p>
               </div>
             </div>
@@ -55,7 +57,9 @@ const InventoryMovementPage: React.FC = () => {
                 <Package className="h-6 w-6 text-green-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">إجمالي المبيعات اليوم</p>
+                <p className="text-sm font-medium text-gray-600">
+                  إجمالي المبيعات اليوم
+                </p>
                 <p className="text-2xl font-bold text-gray-900">380 كجم</p>
               </div>
             </div>
@@ -67,7 +71,9 @@ const InventoryMovementPage: React.FC = () => {
                 <BarChart3 className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">صافي التغيير</p>
+                <p className="text-sm font-medium text-gray-600">
+                  صافي التغيير
+                </p>
                 <p className="text-2xl font-bold text-red-600">-70 كجم</p>
               </div>
             </div>
@@ -79,7 +85,9 @@ const InventoryMovementPage: React.FC = () => {
                 <Package className="h-6 w-6 text-purple-600" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">عدد الحركات اليوم</p>
+                <p className="text-sm font-medium text-gray-600">
+                  عدد الحركات اليوم
+                </p>
                 <p className="text-2xl font-bold text-gray-900">24</p>
               </div>
             </div>
@@ -89,7 +97,9 @@ const InventoryMovementPage: React.FC = () => {
         {/* Inventory Movement Table Placeholder */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">سجل حركة المخزون</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              سجل حركة المخزون
+            </h3>
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">سيتم عرض سجل حركة المخزون هنا</p>
