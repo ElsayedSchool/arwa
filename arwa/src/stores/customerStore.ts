@@ -3,8 +3,8 @@ import type {
   Customer,
   CreateCustomerData,
   UpdateCustomerData,
-} from "../services/customerService";
-import { customerService } from "../services/customerService";
+} from "../components/customers/models/customer";
+import { customerApi } from "../components/customers/api/customerApi";
 
 interface CustomerState {
   customers: Customer[];
@@ -39,7 +39,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   fetchCustomers: async () => {
     set({ loading: true, error: null });
     try {
-      const customers = await customerService.getAllCustomers();
+      const customers = await customerApi.getAll();
       set({ customers, loading: false });
     } catch (error) {
       set({
@@ -53,9 +53,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   createCustomer: async (data: CreateCustomerData) => {
     set({ loading: true, error: null });
     try {
-      const newCustomer = await customerService.createCustomer(data);
+      const newCustomer = await customerApi.create(data);
       // Refresh list to reflect server-calculated fields (e.g., dates, totals)
-      const customers = await customerService.getAllCustomers();
+      const customers = await customerApi.getAll();
       set({ customers, loading: false });
       return newCustomer;
     } catch (error) {
@@ -69,9 +69,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   updateCustomer: async (data: UpdateCustomerData) => {
     set({ loading: true, error: null });
     try {
-      const updatedCustomer = await customerService.updateCustomer(data);
+      const updatedCustomer = await customerApi.update(data);
       // Refresh list to ensure we have latest values from DB
-      const customers = await customerService.getAllCustomers();
+      const customers = await customerApi.getAll();
       set({ customers, loading: false });
       return updatedCustomer;
     } catch (error) {
@@ -85,9 +85,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   deleteCustomer: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      await customerService.deleteCustomer(id);
+      await customerApi.remove(id);
       // Refresh list to reflect deletion
-      const customers = await customerService.getAllCustomers();
+      const customers = await customerApi.getAll();
       set({ customers, loading: false });
     } catch (error) {
       const errorMessage =
