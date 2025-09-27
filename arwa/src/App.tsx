@@ -19,7 +19,7 @@ const LoginPage = lazy(() =>
 );
 const SuppliersPage = lazy(() =>
   import("./components/suppliers/SuppliersPage.tsx").then((module) => ({
-    default: module.SuppliersPage,
+    default: module.default,
   }))
 );
 const SellersPage = lazy(() =>
@@ -81,6 +81,13 @@ const SettingsPage = lazy(
   () => import("./components/settings/SettingsPage.tsx")
 );
 const UsersPage = lazy(() => import("./components/users/UsersPage.tsx"));
+const SupplierAnalysisPage = lazy(() =>
+  import("./components/supplier-analysis/SupplierAnalysisPage.tsx").then(
+    (module) => ({
+      default: module.default,
+    })
+  )
+);
 
 // Loading component
 const LoadingSpinner = () => (
@@ -150,6 +157,10 @@ function App() {
               />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route
+                path="supplier-analysis"
+                element={<SupplierAnalysisPage />}
+              />
             </Route>
             {/* 404 catch-all - redirect to dashboard home */}
             <Route path="*" element={<Navigate to="/" replace />} />
