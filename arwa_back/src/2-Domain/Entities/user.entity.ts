@@ -70,7 +70,7 @@ export class User extends BaseDelete {
   isProfileInit: boolean;
 
   @OneToOne(() => UserProfile, (profile) => profile.owner, {
-    cascade: ["insert"],
+    cascade: ["insert", "update"],
   })
   userProfile: UserProfile;
 

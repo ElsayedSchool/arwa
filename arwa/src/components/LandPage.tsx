@@ -31,7 +31,7 @@ const LandPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-right border-b-2 border-green-500 pb-2">
               العمليات اليومية
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <button
                 onClick={() => navigate("/dashboard/orders")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
@@ -96,6 +96,21 @@ const LandPage: React.FC = () => {
                 </div>
                 <p className="text-gray-600">تحديد أسعار اليوم</p>
               </button>
+
+              <button
+                onClick={() => navigate("/dashboard/supplier-analysis")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <BarChart3 className="h-8 w-8 text-green-600 group-hover:text-green-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    تحليل الموردين
+                  </h3>
+                </div>
+                <p className="text-gray-600">
+                  تحليل أداء الموردين ومتابعة المخزون
+                </p>
+              </button>
             </div>
           </div>
 
@@ -130,21 +145,6 @@ const LandPage: React.FC = () => {
                 </div>
                 <p className="text-gray-600">
                   قائمة الموردين والمعلومات الأساسية
-                </p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/supplier-analysis")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <BarChart3 className="h-8 w-8 text-green-600 group-hover:text-green-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    تحليل الموردين
-                  </h3>
-                </div>
-                <p className="text-gray-600">
-                  تحليل أداء الموردين ومتابعة المخزون
                 </p>
               </button>
 

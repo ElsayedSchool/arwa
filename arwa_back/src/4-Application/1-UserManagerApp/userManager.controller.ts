@@ -22,6 +22,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { RoleGuard } from "src/1-Core/Guards/Roles.Guard";
 import { Roles } from "src/3-Infrastructure/Authentication/Roles/Roles.Type";
 import { ChangePasswordHandler } from "./Commands/ChangePasswordCommand/changePassword.Handler";
+import { ChangePasswordCommand } from "./Commands/ChangePasswordCommand/changePassword.Command";
 import { UpsertUserCommand } from "./Commands/UpsertUser/upsertUser.Command";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UpsertUserHandler } from "./Commands/UpsertUser/upsertUser.Handler";
@@ -35,7 +36,7 @@ export class UserManagerController {
     private deactivate: DeactivateUserHandler,
     private changeRole: ChangeUserRoleHandler,
     private remove: RemoveUserHandler,
-    private changePassword: ChangePasswordHandler
+    private changePasswordHandler: ChangePasswordHandler
   ) {}
 
   @Get("/all")
@@ -101,9 +102,9 @@ export class UserManagerController {
   @Put("/changepassword")
   @UseGuards(AuthGuard(), RoleGuard)
   @Roles("Admin")
-  async changePasswordCommand(
-    @Body() command: ChangeUserRoleCommand
+  async changePassword(
+    @Body() command: ChangePasswordCommand
   ): Promise<boolean> {
-    return await this.changeRole.handle(command);
+    return await this.changePasswordHandler.handle(command);
   }
 }

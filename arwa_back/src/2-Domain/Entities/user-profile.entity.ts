@@ -26,6 +26,9 @@ export class UserProfile {
   @Column({ nullable: true })
   profilePhoto: string;
 
+  @Column({ nullable: true, length: 20 })
+  phoneNumber: string | null;
+
   @Column({ default: "" })
   fcmToken: string;
 

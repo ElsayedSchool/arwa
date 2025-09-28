@@ -23,14 +23,25 @@ export class UpsertUserHandler {
       userData = await this.onUpdateUser(command);
     } else {
       userData = await this.onCreateNewUser(command);
-      userData.isAdmin = true;
       userData.emailConfirmed = true;
       userData.isProfileInit = true;
     }
-    userData.roles = this.getRoles(command.roles);
-    console.log("userData", userData, command.roles);
-    userData.isActive = (command.isActive as unknown as string) == "true";
-    userData.password = await this.hashSer.getHashedPassword(command.password);
+    userData.roles = this.getRoles(command.roles as any);
+    // allow explicitly controlling admin flag, default false when not provided
+    if (typeof command.isAdmin === "boolean") {
+      userData.isAdmin = command.isAdmin;
+    } else if (!command.id) {
+      userData.isAdmin = false;
+    }
+    userData.isActive =
+      (command.isActive as unknown as boolean) === true ||
+      (command.isActive as unknown as string) === "true";
+    // Ensure password is hashed (createNewUser may already hash it, but update path needs it)
+    if (command.password) {
+      userData.password = await this.hashSer.getHashedPassword(
+        command.password
+      );
+    }
 
     //store valid photos on disk and set Question photos names
     const validPhotos = await this.photosSer.getValidFilesName(photos);
@@ -65,11 +76,26 @@ export class UpsertUserHandler {
     userReqData.name = command.username.toLowerCase();
     userReqData.email = command.email.toLowerCase();
     userReqData.provider = AuthProvider.Credential;
-    return await this.authSer.createNewUser(
+    const created = await this.authSer.createNewUser(
       userReqData,
       command.password,
       command.username.toLowerCase()
     );
+    // map extra fields to profile (phone/salary)
+    if (!created.userProfile) {
+      created.userProfile = { id: created.id } as any;
+    }
+    // set profile name from first/last
+    (created.userProfile as any).name = `${command.firstName ?? ""} ${
+      command.lastName ?? ""
+    }`.trim();
+    if (command.phoneNumber) {
+      (created.userProfile as any).phoneNumber = command.phoneNumber;
+    }
+    if (typeof command.salary === "number") {
+      (created.userProfile as any).salary = command.salary;
+    }
+    return created;
   }
 
   async onUpdateUser(command: UpsertUserCommand) {
@@ -85,11 +111,33 @@ export class UpsertUserHandler {
     }
 
     user.email = command.email;
+    // update profile fields if provided
+    if (!user.userProfile) {
+      user.userProfile = { id: user.id } as any;
+    }
+    if (user.userProfile) {
+      // update profile name
+      if (command.firstName || command.lastName) {
+        (user.userProfile as any).name = `${command.firstName ?? ""} ${
+          command.lastName ?? ""
+        }`.trim();
+      }
+      if (typeof command.salary === "number") {
+        (user.userProfile as any).salary = command.salary;
+      }
+      if (typeof command.phoneNumber === "string") {
+        (user.userProfile as any).phoneNumber = command.phoneNumber;
+      }
+    }
     return user;
   }
 
-  getRoles(roles: string) {
-    const userRoles = roles.split(",");
+  getRoles(roles: string | string[]) {
+    const userRoles = Array.isArray(roles)
+      ? roles
+      : typeof roles === "string"
+        ? roles.split(",")
+        : [];
     const updatedRoles = [];
     userRoles.forEach((element) => {
       if (Object.values(UserRole).includes(element as UserRole))

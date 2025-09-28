@@ -28,17 +28,22 @@ export class UserRepo extends BaseRepository<User> implements IUserRepo {
   async getAllAdminUsers() {
     try {
       return await this.db.find({
-        where: { isAdmin: true },
+        // list all active users regardless of admin so Employees page shows everyone
         relations: { userProfile: true },
         select: {
           id: true,
           username: true,
           email: true,
           roles: true,
+          isAdmin: true,
           isActive: true,
           password: true,
+          createdAt: true,
           userProfile: {
             profilePhoto: true,
+            name: true,
+            salary: true,
+            phoneNumber: true,
           },
         },
       });
