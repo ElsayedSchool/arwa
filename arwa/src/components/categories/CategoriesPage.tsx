@@ -196,22 +196,20 @@ const CategoriesPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-end mb-8">
+        <div className="mb-8">
           <TopNavigation currentPage="categories" />
-        </div>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">إدارة الفئات</h1>
-            <p className="text-gray-600 mt-2">
-              إضافة وتعديل فئات المنتجات والفئات الفرعية
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">العملاء</h1>
+              <p className="text-gray-600 mt-2">
+                إضافة وتعديل فئات المنتجات والفئات الفرعية
+              </p>
+            </div>
             <Button
+              className="flex items-center gap-2"
               onClick={handleAddMainCategory}
-              className="inline-flex items-center"
             >
-              <Plus size={20} className="ml-2" />
+              <Plus className="h-4 w-4" />
               إضافة فئة رئيسية
             </Button>
           </div>

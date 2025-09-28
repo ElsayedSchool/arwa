@@ -314,11 +314,15 @@ const ReviewOrdersPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header with top-right navigation */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            مراجعة طلبات العملاء
-          </h1>
-          <TopNavigation currentPage="reviews" showSectionLinks={true} />
+
+        <div className="mb-8">
+          <TopNavigation currentPage="reviews" />
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">العملاء</h1>
+              <p className="text-gray-600 mt-2">مراجعة طلبات العملاء</p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

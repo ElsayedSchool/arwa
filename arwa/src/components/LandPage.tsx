@@ -33,6 +33,19 @@ const LandPage: React.FC = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <button
+                onClick={() => navigate("/dashboard/deliveries")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <Package className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    تسجيل توريد جديد
+                  </h3>
+                </div>
+                <p className="text-gray-600">إدارة المخزون وعمليات التوصيل</p>
+              </button>
+
+              <button
                 onClick={() => navigate("/dashboard/orders")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
@@ -59,19 +72,6 @@ const LandPage: React.FC = () => {
               </button>
 
               <button
-                onClick={() => navigate("/dashboard/deliveries")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <Package className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    تسجيل توريد جديد
-                  </h3>
-                </div>
-                <p className="text-gray-600">إدارة المخزون وعمليات التوصيل</p>
-              </button>
-
-              <button
                 onClick={() => navigate("/dashboard/inventory")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
@@ -85,6 +85,19 @@ const LandPage: React.FC = () => {
               </button>
 
               <button
+                onClick={() => navigate("/dashboard/reviews")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <Star className="h-8 w-8 text-yellow-600 group-hover:text-yellow-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    مراجعة الطلبات
+                  </h3>
+                </div>
+                <p className="text-gray-600">مراجعة وتأكيد الطلبات المشتراة</p>
+              </button>
+
+              <button
                 onClick={() => navigate("/dashboard/pricing")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
@@ -95,21 +108,6 @@ const LandPage: React.FC = () => {
                   </h3>
                 </div>
                 <p className="text-gray-600">تحديد أسعار اليوم</p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/supplier-analysis")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <BarChart3 className="h-8 w-8 text-green-600 group-hover:text-green-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    تحليل الموردين
-                  </h3>
-                </div>
-                <p className="text-gray-600">
-                  تحليل أداء الموردين ومتابعة المخزون
-                </p>
               </button>
             </div>
           </div>
@@ -224,6 +222,21 @@ const LandPage: React.FC = () => {
               </button>
 
               <button
+                onClick={() => navigate("/dashboard/supplier-analysis")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <BarChart3 className="h-8 w-8 text-green-600 group-hover:text-green-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    تحليل الموردين
+                  </h3>
+                </div>
+                <p className="text-gray-600">
+                  تحليل أداء الموردين ومتابعة المخزون
+                </p>
+              </button>
+
+              <button
                 onClick={() => navigate("/dashboard/inventory-movement")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
@@ -244,19 +257,6 @@ const LandPage: React.FC = () => {
               الإعدادات وإدارة المستخدمين
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <button
-                onClick={() => navigate("/dashboard/reviews")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <Star className="h-8 w-8 text-yellow-600 group-hover:text-yellow-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    مراجعة الطلبات
-                  </h3>
-                </div>
-                <p className="text-gray-600">مراجعة وتأكيد الطلبات المشتراة</p>
-              </button>
-
               <button
                 onClick={() => navigate("/dashboard/analytics")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
