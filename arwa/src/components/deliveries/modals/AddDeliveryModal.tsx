@@ -3,7 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Modal } from "../../common/Modal";
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
-import { type TypeDto, type DeliveryUi } from "../api/deliveriesApi";
+import { type CategoryDto, type DeliveryUi } from "../api/deliveriesApi";
 
 interface FishTypeForm {
   baseType: string;
@@ -25,7 +25,7 @@ interface AddDeliveryModalProps {
   onClose: () => void;
   onSave: (data: Omit<DeliveryUi, "id" | "lastEditTime">) => Promise<void>;
   suppliers: string[];
-  types: TypeDto[];
+  types: CategoryDto[];
 }
 
 export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
@@ -84,10 +84,10 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
   // tolerant helpers for backend type shapes (isBase vs is_base, category vs parent)
   const isTruthy = (v: unknown): v is boolean | number | string =>
     v === true || v === 1 || v === "1" || v === "true";
-  const isBaseType = (t: TypeDto): boolean =>
+  const isBaseType = (t: CategoryDto): boolean =>
     isTruthy(t?.isBase) ||
     isTruthy((t as unknown as Record<string, unknown>)?.is_base);
-  const getTypeCategory = (t: TypeDto): string => {
+  const getTypeCategory = (t: CategoryDto): string => {
     const v =
       (t as unknown as Record<string, unknown>)?.category ??
       (t as unknown as Record<string, unknown>)?.parent ??
@@ -105,7 +105,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
   console.log(subs);
   const normalize = (v: unknown): string =>
     v == null ? "" : String(v).trim().toLowerCase();
-  const getSubtypesForBase = (baseName: string): TypeDto[] => {
+  const getSubtypesForBase = (baseName: string): CategoryDto[] => {
     // Debug: log what's being filtered.
     console.log(`Filtering subtypes for base: '${baseName}'`);
     const filtered = subs.filter(
@@ -309,7 +309,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
                       {bases.length === 0 ? (
                         <option value="">لا توجد فئات أساسية</option>
                       ) : (
-                        bases.map((t: TypeDto) => (
+                        bases.map((t: CategoryDto) => (
                           <option key={t.id} value={t.name}>
                             {t.name}
                           </option>
@@ -337,7 +337,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
                           <option value="">لا توجد أنواع فرعية</option>
                         ) : (
                           getSubtypesForBase(fish.baseType).map(
-                            (t: TypeDto) => (
+                            (t: CategoryDto) => (
                               <option key={t.id} value={t.name}>
                                 {t.name}
                               </option>

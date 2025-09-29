@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import ExcelJS from "exceljs";
-import { Plus, Search, Truck, Download, Package, Users } from "lucide-react";
+import { Plus, Truck } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import { Badge } from "../common/Badge";
 import { TopNavigation } from "../common/TopNavigation";
 import { DeliveriesTable } from "./components/DeliveriesTable";
+import { DeliveriesFilters } from "./components/DeliveriesFilters";
+import { DeliveriesAnalytics } from "./components/DeliveriesAnalytics";
 import { AddDeliveryModal } from "./modals/AddDeliveryModal";
 import { EditDeliveryModal } from "./modals/EditDeliveryModal";
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
@@ -543,218 +543,24 @@ const DeliveriesPage: React.FC = () => {
         </div>
 
         {/* Enhanced Filters */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              البحث والتصفية
-            </h3>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={exportDeliveriesData}
-                size="sm"
-              >
-                <Download size={16} className="ml-2" />
-                تصدير البيانات
-              </Button>
-              <Button variant="outline" onClick={clearFilters} size="sm">
-                مسح الفلاتر
-              </Button>
-            </div>
-          </div>
+        <DeliveriesFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          selectedSupplier={selectedSupplier}
+          onSelectedSupplierChange={setSelectedSupplier}
+          selectedFishType={selectedFishType}
+          onSelectedFishTypeChange={setSelectedFishType}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          supplierNames={supplierNames}
+          typeNames={typeNames}
+          onExportData={exportDeliveriesData}
+          onClearFilters={clearFilters}
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            {/* Search */}
-            <div className="relative">
-              <Search
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <Input
-                placeholder="البحث في المورد أو السائق..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-
-            {/* Supplier Filter */}
-            <select
-              value={selectedSupplier}
-              onChange={(e) => setSelectedSupplier(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">جميع الموردين</option>
-              {supplierNames.map((supplier) => (
-                <option key={supplier} value={supplier}>
-                  {supplier}
-                </option>
-              ))}
-            </select>
-
-            {/* Fish Type Filter */}
-            <select
-              value={selectedFishType}
-              onChange={(e) => setSelectedFishType(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">جميع أنواع الأسماك</option>
-              {typeNames.map((fishType) => (
-                <option key={fishType} value={fishType}>
-                  {fishType}
-                </option>
-              ))}
-            </select>
-
-            {/* Date Filter */}
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">جميع التواريخ</option>
-              <option value="today">اليوم</option>
-              <option value="week">هذا الأسبوع</option>
-              <option value="month">هذا الشهر</option>
-              <option value="range">فترة محددة</option>
-            </select>
-          </div>
-
-          {/* Date Range Inputs */}
-          {dateFilter === "range" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <Input
-                label="من تاريخ"
-                type="date"
-                value={dateRange.from}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, from: e.target.value }))
-                }
-              />
-              <Input
-                label="إلى تاريخ"
-                type="date"
-                value={dateRange.to}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, to: e.target.value }))
-                }
-              />
-            </div>
-          )}
-
-          {/* Active Filters Display */}
-          {(searchTerm ||
-            selectedSupplier ||
-            selectedFishType ||
-            dateFilter !== "all" ||
-            dateRange.from ||
-            dateRange.to) && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {searchTerm && (
-                <Badge variant="default">البحث: {searchTerm}</Badge>
-              )}
-              {selectedSupplier && (
-                <Badge variant="default">المورد: {selectedSupplier}</Badge>
-              )}
-              {selectedFishType && (
-                <Badge variant="default">نوع السمك: {selectedFishType}</Badge>
-              )}
-              {dateFilter !== "all" && (
-                <Badge variant="default">
-                  التاريخ:{" "}
-                  {dateFilter === "today"
-                    ? "اليوم"
-                    : dateFilter === "week"
-                    ? "هذا الأسبوع"
-                    : dateFilter === "month"
-                    ? "هذا الشهر"
-                    : "فترة محددة"}
-                </Badge>
-              )}
-              {dateRange.from && (
-                <Badge variant="default">من: {dateRange.from}</Badge>
-              )}
-              {dateRange.to && (
-                <Badge variant="default">إلى: {dateRange.to}</Badge>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <Truck className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  إجمالي التوصيلات
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.totalDeliveries}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <Package className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  إجمالي الأسماك المستلمة
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.totalReceivedFish.toFixed(1)} كجم
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  عدد الموردين
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.uniqueSuppliers}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Fish Types Breakdown */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            توزيع الأسماك حسب النوع
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Object.entries(analytics.fishTypeBreakdown).map(
-              ([fishType, weight]) => (
-                <div key={fishType} className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-600">
-                    {fishType}
-                  </p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {weight.toFixed(1)} كجم
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {((weight / analytics.totalReceivedFish) * 100).toFixed(1)}%
-                  </p>
-                </div>
-              )
-            )}
-          </div>
-        </div>
+        <DeliveriesAnalytics analytics={analytics} />
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm mb-8">

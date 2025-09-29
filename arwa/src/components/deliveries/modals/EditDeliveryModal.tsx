@@ -5,7 +5,7 @@ import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
 import {
   type DeliveryUi,
-  type TypeDto,
+  type CategoryDto,
   type FishTypeUi,
 } from "../api/deliveriesApi";
 
@@ -30,7 +30,7 @@ interface EditDeliveryModalProps {
   onSave: (data: DeliveryUi) => void;
   delivery: DeliveryUi | null;
   suppliers: string[];
-  types: TypeDto[];
+  types: CategoryDto[];
 }
 
 export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({

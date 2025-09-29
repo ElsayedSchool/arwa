@@ -8,9 +8,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "../ui/Button";
-// @ts-expect-error - JSX module import
 import { AddCategoryModal } from "./modals/AddCategoryModal";
-// @ts-expect-error - JSX module import
 import { EditCategoryModal } from "./modals/EditCategoryModal";
 import { TopNavigation } from "../common/TopNavigation";
 import {

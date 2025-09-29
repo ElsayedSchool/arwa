@@ -1,22 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "../../common/Modal";
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
 
-export const AddCategoryModal = ({
+interface EditCategoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: unknown) => void;
+  editingItem: {
+    id: number;
+    name: string;
+    description?: string;
+    type: "main" | "sub";
+    mainCategoryId?: number;
+    character?: string | null;
+    color?: string | null;
+  } | null;
+}
+
+interface FormData {
+  name: string;
+  description: string;
+  character: string;
+  color: string;
+}
+
+export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  type,
-  mainCategoryName,
+  editingItem,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
     character: "",
     color: "#3B82F6",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const colors = [
     "#3B82F6",
@@ -31,7 +52,18 @@ export const AddCategoryModal = ({
     "#6366F1",
   ];
 
-  const handleInputChange = (field, value) => {
+  useEffect(() => {
+    if (editingItem) {
+      setFormData({
+        name: editingItem.name || "",
+        description: editingItem.description || "",
+        character: editingItem.character || "",
+        color: editingItem.color || "#3B82F6",
+      });
+    }
+  }, [editingItem]);
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -39,21 +71,21 @@ export const AddCategoryModal = ({
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = "اسم الفئة مطلوب";
     }
 
-    if (type === "main" && !formData.description.trim()) {
+    if (editingItem?.type === "main" && !formData.description.trim()) {
       newErrors.description = "وصف الفئة مطلوب";
     }
 
-    if (type === "sub") {
+    if (editingItem?.type === "sub") {
       if (!formData.character.trim()) {
         newErrors.character = "الرمز مطلوب";
-      } else if (formData.character.length > 2) {
-        newErrors.character = "الرمز يجب أن لا يزيد عن حرفين";
+      } else if (formData.character.length !== 1) {
+        newErrors.character = "الرمز يجب أن يكون حرف واحد فقط";
       }
     }
 
@@ -64,44 +96,45 @@ export const AddCategoryModal = ({
   const handleSubmit = () => {
     if (validateForm()) {
       onSave(formData);
-      setFormData({
-        name: "",
-        description: "",
-        character: "",
-        color: "#3B82F6",
-      });
       setErrors({});
     }
   };
 
   const handleClose = () => {
-    setFormData({ name: "", description: "", character: "", color: "#3B82F6" });
     setErrors({});
     onClose();
   };
+
+  if (!editingItem) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
       title={
-        type === "main"
-          ? "إضافة فئة رئيسية جديدة"
-          : `إضافة فئة فرعية - ${mainCategoryName}`
+        editingItem.type === "main"
+          ? "تعديل الفئة الرئيسية"
+          : "تعديل الفئة الفرعية"
       }
     >
       <div className="space-y-4">
         <Input
-          label={type === "main" ? "اسم الفئة الرئيسية" : "اسم الفئة الفرعية"}
+          label={
+            editingItem.type === "main"
+              ? "اسم الفئة الرئيسية"
+              : "اسم الفئة الفرعية"
+          }
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
           placeholder={
-            type === "main" ? "مثال: أسماك المياه العذبة" : "مثال: بلطي"
+            editingItem.type === "main"
+              ? "مثال: أسماك المياه العذبة"
+              : "مثال: بلطي"
           }
           error={errors.name}
         />
 
-        {type === "main" && (
+        {editingItem.type === "main" && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               وصف الفئة
@@ -119,7 +152,7 @@ export const AddCategoryModal = ({
           </div>
         )}
 
-        {type === "sub" && (
+        {editingItem.type === "sub" && (
           <>
             <Input
               label="الرمز المميز"
@@ -127,8 +160,8 @@ export const AddCategoryModal = ({
               onChange={(e) =>
                 handleInputChange("character", e.target.value.slice(0, 1))
               }
-              placeholder="اقصى حرفين"
-              maxLength={2}
+              placeholder="حرف واحد فقط"
+              maxLength={1}
               error={errors.character}
             />
 
@@ -170,7 +203,7 @@ export const AddCategoryModal = ({
           <Button variant="outline" onClick={handleClose}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit}>إضافة</Button>
+          <Button onClick={handleSubmit}>حفظ التغييرات</Button>
         </div>
       </div>
     </Modal>

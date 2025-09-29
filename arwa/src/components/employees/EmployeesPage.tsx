@@ -1,23 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Users,
-  Plus,
-  Search,
-  DollarSign,
-  Edit,
-  Trash2,
-  Power,
-  Key,
-} from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { TopNavigation } from "../common/TopNavigation";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { useEmployeeStore } from "../../stores/employeeStore";
 import EmployeeModal from "./modals/EmployeeModal";
+import { EmployeesStats } from "./components/EmployeesStats";
+import { EmployeesTable } from "./components/EmployeesTable";
 
 const EmployeesPage: React.FC = () => {
   const {
-    loading,
     error,
     searchTerm,
     setSearchTerm,
@@ -96,223 +88,23 @@ const EmployeesPage: React.FC = () => {
         </div>
 
         {/* Employees Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  إجمالي الموظفين
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {computedStats.total}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  موظفين نشطين
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {computedStats.active}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-yellow-100">
-                <DollarSign className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  إجمالي الرواتب الشهرية
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {computedStats.totalMonthlySalary.toLocaleString()} ج.م
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  متوسط الراتب
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {computedStats.averageSalary.toLocaleString()} ج.م
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmployeesStats stats={computedStats} />
 
         {/* Employees Table */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              قائمة الموظفين
-            </h3>
-            {error && <div className="text-red-600 mb-3">{error}</div>}
-            {loading ? (
-              <div className="text-gray-600">جاري التحميل...</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        الاسم
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        الهاتف
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        الراتب
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        الأدوار
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        نشط
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        تاريخ الانضمام
-                      </th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                        إجراءات
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredEmployees.map((e) => (
-                      <tr key={e.id}>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {e.name}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                          {e.phone}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                          {Number(e.salary).toLocaleString()} ج.م
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                          <div className="flex flex-wrap gap-1">
-                            {e.isAdmin && (
-                              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs">
-                                Admin
-                              </span>
-                            )}
-                            {(e.roles || []).map((r) => (
-                              <span
-                                key={r}
-                                className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs"
-                              >
-                                {r}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
-                          <span
-                            className={
-                              e.isActive ? "text-green-600" : "text-red-600"
-                            }
-                          >
-                            {e.isActive ? "نشط" : "غير نشط"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                          {new Date(e.joinDate).toLocaleDateString()}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                          <div className="flex items-center gap-2">
-                            <button
-                              title="تفعيل/تعطيل"
-                              className="p-1 hover:bg-gray-100 rounded"
-                              onClick={() =>
-                                deactivateEmployee(e.id, !e.isActive)
-                              }
-                            >
-                              <Power className="h-4 w-4 text-gray-600" />
-                            </button>
-                            <button
-                              title="تعديل"
-                              className="p-1 hover:bg-gray-100 rounded"
-                              onClick={() => {
-                                setEditingId(e.id);
-                                setShowModal(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 text-blue-600" />
-                            </button>
-                            <button
-                              title="حذف"
-                              className="p-1 hover:bg-gray-100 rounded"
-                              onClick={() => deleteEmployee(e.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </button>
-                            <div className="flex items-center">
-                              <Input
-                                placeholder="كلمة مرور جديدة"
-                                value={newPasswords[e.id] || ""}
-                                onChange={(ev) =>
-                                  setNewPasswords((prev) => ({
-                                    ...prev,
-                                    [e.id]: ev.target.value,
-                                  }))
-                                }
-                                className="h-8 text-xs py-1 mr-2"
-                              />
-                              <button
-                                title="إعادة تعيين كلمة المرور"
-                                className="p-1 hover:bg-gray-100 rounded"
-                                onClick={async () => {
-                                  const pw = newPasswords[e.id];
-                                  if (pw) {
-                                    const ok = await resetPassword(e.id, pw);
-                                    if (ok)
-                                      setNewPasswords((prev) => ({
-                                        ...prev,
-                                        [e.id]: "",
-                                      }));
-                                  }
-                                }}
-                              >
-                                <Key className="h-4 w-4 text-purple-600" />
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {filteredEmployees.length === 0 && (
-                  <div className="text-center text-gray-500 py-8">
-                    لا توجد نتائج
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <EmployeesTable
+          employees={filteredEmployees}
+          onEdit={(id) => {
+            setEditingId(id);
+            setShowModal(true);
+          }}
+          onDeactivate={deactivateEmployee}
+          onDelete={deleteEmployee}
+          onResetPassword={resetPassword}
+          newPasswords={newPasswords}
+          onNewPasswordChange={(id, password) =>
+            setNewPasswords((prev) => ({ ...prev, [id]: password }))
+          }
+        />
         <EmployeeModal
           isOpen={showModal}
           onClose={() => {
