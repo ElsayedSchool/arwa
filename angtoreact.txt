@@ -1,0 +1,9 @@
+| Angular Concept                 | React Equivalent                                  |
+| ------------------------------- | ------------------------------------------------- |
+| `@Input()`                      | Component `props`                                 |
+| `@Output() EventEmitter`        | Callback function passed as prop (`onEdit`, etc.) |
+| `*ngFor`                        | `{array.map(item => (...))}`                      |
+| `*ngIf`                         | `{condition && (...)}`                            |
+| Two-way binding `[(ngModel)]`   | `useState` with `onChange` + `value`              |
+| Template file + Component class | Single `.tsx` file with JSX and logic             |
+| Angular pipes                   | Plain functions or libraries                      |

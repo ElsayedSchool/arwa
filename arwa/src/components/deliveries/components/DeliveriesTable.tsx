@@ -1,37 +1,42 @@
 import React, { useState } from "react";
 import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
-import { Button } from "../../ui/Button";
-import { Badge } from "../../common/Badge";
+import type { DeliveryUi, FishTypeUi } from "../api/deliveriesApi";
 
-export const DeliveriesTable = ({
+interface DeliveriesTableProps {
+  data: DeliveryUi[];
+  userRole: string;
+  onViewDetails: (delivery: DeliveryUi) => void;
+  onEdit: (delivery: DeliveryUi) => void;
+  onDelete: (delivery: DeliveryUi) => void;
+}
+
+export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
   data,
   userRole,
   onViewDetails,
   onEdit,
   onDelete,
-  getPaymentStatusVariant,
-  getPaymentStatusText,
 }) => {
   const isAdmin = userRole === "admin" || userRole === "owner";
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  const toggleDropdown = (deliveryId) => {
+  const toggleDropdown = (deliveryId: string) => {
     setOpenDropdown(openDropdown === deliveryId ? null : deliveryId);
   };
 
-  const handleAction = (action, delivery) => {
+  const handleAction = (action: string, delivery: DeliveryUi) => {
     if (action === "view") onViewDetails(delivery);
     else if (action === "edit") onEdit(delivery);
     else if (action === "delete") onDelete(delivery);
     setOpenDropdown(null);
   };
 
-  const formatDateTime = (date, time) => {
+  const formatDateTime = (date: string, time: string) => {
     const formattedDate = new Date(date).toLocaleDateString("ar-EG");
     return `${formattedDate} - ${time}`;
   };
 
-  const formatLastEdit = (lastEditTime) => {
+  const formatLastEdit = (lastEditTime: string | null) => {
     if (!lastEditTime) return "-";
     const date = new Date(lastEditTime);
     return date.toLocaleString("ar-EG");
@@ -66,7 +71,7 @@ export const DeliveriesTable = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((delivery) => (
+          {data.map((delivery: DeliveryUi) => (
             <tr key={delivery.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {delivery.supplierName}
@@ -79,12 +84,14 @@ export const DeliveriesTable = ({
               </td>
               <td className="px-6 py-4 text-sm text-gray-500">
                 <div className="space-y-1">
-                  {delivery.fishTypes?.map((fish, index) => (
-                    <div key={index} className="flex justify-between">
-                      <span>{fish.type}:</span>
-                      <span className="font-medium">{fish.weight} كجم</span>
-                    </div>
-                  ))}
+                  {delivery.fishTypes?.map(
+                    (fish: FishTypeUi, index: number) => (
+                      <div key={index} className="flex justify-between">
+                        <span>{fish.type}:</span>
+                        <span className="font-medium">{fish.weight} كجم</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

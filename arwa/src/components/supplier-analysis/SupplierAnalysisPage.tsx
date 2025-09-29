@@ -9,7 +9,6 @@ import {
   Users,
   CreditCard,
 } from "lucide-react";
-// @ts-expect-error: JS/JSX module without TypeScript types
 import { SuppliersTable } from "../suppliers/components/SuppliersTable";
 // @ts-expect-error: JS/JSX module without TypeScript types
 import { AddSupplierProductForm } from "../suppliers/components/AddSupplierProductForm";

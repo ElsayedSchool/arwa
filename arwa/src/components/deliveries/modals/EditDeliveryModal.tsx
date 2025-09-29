@@ -1,34 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Modal } from "../../common/Modal";
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
+import {
+  type DeliveryUi,
+  type TypeDto,
+  type FishTypeUi,
+} from "../api/deliveriesApi";
 
-export const AddDeliveryModal = ({
+interface FishTypeEdit {
+  baseType: string;
+  type: string;
+  weight: string;
+  pricePerKg: string;
+}
+
+interface EditFormData {
+  supplierName: string;
+  driverName: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  fishTypes: FishTypeEdit[];
+}
+
+interface EditDeliveryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: DeliveryUi) => void;
+  delivery: DeliveryUi | null;
+  suppliers: string[];
+  types: TypeDto[];
+}
+
+export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  delivery,
   suppliers,
   types = [],
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EditFormData>({
     supplierName: "",
     driverName: "",
-    deliveryDate: new Date().toISOString().split("T")[0],
-    deliveryTime: new Date().toTimeString().slice(0, 5),
-    // quantity: number entered by user; unit: 'kg' or 'box' (default box = 25 kg)
-    fishTypes: [{ baseType: "", type: "", quantity: "", unit: "box" }],
+    deliveryDate: "",
+    deliveryTime: "",
+    fishTypes: [{ baseType: "", type: "", weight: "", pricePerKg: "" }],
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (field, value) => {
+  useEffect(() => {
+    if (delivery) {
+      setFormData({
+        supplierName: delivery.supplierName,
+        driverName: delivery.driverName,
+        deliveryDate: delivery.deliveryDate,
+        deliveryTime: delivery.deliveryTime,
+        fishTypes: delivery.fishTypes.map((fish: FishTypeUi) => {
+          const sub = types.find((t) => !t.isBase && t.name === fish.type);
+          const baseName = sub?.category || "";
+          return {
+            baseType: baseName,
+            type: fish.type,
+            weight: fish.weight.toString(),
+            pricePerKg: fish.pricePerKg.toString(),
+          };
+        }),
+      });
+    }
+  }, [delivery, types]);
+
+  const handleInputChange = (field: keyof EditFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const handleFishTypeChange = (index, field, value) => {
+  const handleFishTypeChange = (
+    index: number,
+    field: keyof FishTypeEdit,
+    value: string
+  ) => {
     const newFishTypes = [...formData.fishTypes];
     newFishTypes[index] = { ...newFishTypes[index], [field]: value };
     setFormData((prev) => ({ ...prev, fishTypes: newFishTypes }));
@@ -39,12 +93,12 @@ export const AddDeliveryModal = ({
       ...prev,
       fishTypes: [
         ...prev.fishTypes,
-        { baseType: "", type: "", quantity: "", unit: "box" },
+        { baseType: "", type: "", weight: "", pricePerKg: "" },
       ],
     }));
   };
 
-  const removeFishType = (index) => {
+  const removeFishType = (index: number) => {
     if (formData.fishTypes.length > 1) {
       setFormData((prev) => ({
         ...prev,
@@ -53,33 +107,8 @@ export const AddDeliveryModal = ({
     }
   };
 
-  // tolerant helpers for backend type shapes (isBase vs is_base, category vs parent)
-  const isTruthy = (v) => v === true || v === 1 || v === "1" || v === "true";
-  const isBaseType = (t) => isTruthy(t?.isBase) || isTruthy(t?.is_base);
-  const getTypeCategory = (t) => {
-    const v = t?.category ?? t?.parent ?? null;
-    if (v && typeof v === "object") {
-      // try common name fields if the backend returned an object
-      return v.name ?? v.categoryName ?? v.title ?? v.label ?? v.id ?? null;
-    }
-    return v;
-  };
-  const bases = types.filter((t) => isBaseType(t));
-  const subs = types.filter((t) => !isBaseType(t));
-  console.log(subs);
-  const normalize = (v) => (v == null ? "" : String(v).trim().toLowerCase());
-  const getSubtypesForBase = (baseName) => {
-    // Debug: log what's being filtered.
-    console.log(`Filtering subtypes for base: '${baseName}'`);
-    const filtered = subs.filter(
-      (s) => normalize(getTypeCategory(s)) === normalize(baseName)
-    );
-    console.log(`Found ${filtered.length} subtypes:`, filtered);
-    return filtered;
-  };
-
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.supplierName.trim()) {
       newErrors.supplierName = "اسم المورد مطلوب";
@@ -101,12 +130,12 @@ export const AddDeliveryModal = ({
       if (!fish.type.trim()) {
         newErrors[`fishType_${index}`] = "نوع السمك مطلوب";
       }
-      const qty = parseFloat(fish.quantity || 0);
-      if (!qty || qty <= 0) {
-        newErrors[`quantity_${index}`] =
-          "الكمية مطلوبة ويجب أن تكون أكبر من صفر";
+      if (!fish.weight || parseFloat(fish.weight) <= 0) {
+        newErrors[`weight_${index}`] = "الوزن مطلوب ويجب أن يكون أكبر من صفر";
       }
-      // price removed; only quantity/unit collected
+      if (!fish.pricePerKg || parseFloat(fish.pricePerKg) <= 0) {
+        newErrors[`price_${index}`] = "السعر مطلوب ويجب أن يكون أكبر من صفر";
+      }
     });
 
     setErrors(newErrors);
@@ -115,56 +144,48 @@ export const AddDeliveryModal = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      const totalWeight = formData.fishTypes.reduce((sum, fish) => {
-        const qty = parseFloat(fish.quantity || 0) || 0;
-        const unit = fish.unit || "kg";
-        const weightKg = unit === "box" ? qty * 25 : qty;
-        return sum + weightKg;
-      }, 0);
-      // No cost calculation in modal; cost handled elsewhere. Set to 0.
-      const totalCost = 0;
-      const deliveryData = {
+      const totalWeight = formData.fishTypes.reduce(
+        (sum, fish) => sum + parseFloat(fish.weight || "0"),
+        0
+      );
+      const totalCost = formData.fishTypes.reduce(
+        (sum, fish) =>
+          sum +
+          parseFloat(fish.weight || "0") * parseFloat(fish.pricePerKg || "0"),
+        0
+      );
+
+      const updatedDelivery = {
+        ...delivery,
         ...formData,
         totalWeight,
         totalCost,
-        amountPaid: 0,
-        remainingAmount: totalCost,
-        paymentStatus: "unpaid",
-        fishTypes: formData.fishTypes.map((fish) => {
-          const qty = parseFloat(fish.quantity || 0) || 0;
-          const unit = fish.unit || "kg";
-          const weightKg = unit === "box" ? qty * 25 : qty;
-          return {
-            ...fish,
-            quantity: qty,
-            unit,
-            weight: weightKg,
-          };
-        }),
+        fishTypes: formData.fishTypes.map((fish) => ({
+          ...fish,
+          weight: parseFloat(fish.weight),
+          pricePerKg: parseFloat(fish.pricePerKg),
+          // ensure type is subtype name
+          type: fish.type,
+        })),
       };
 
-      onSave(deliveryData);
+      onSave(updatedDelivery as unknown as DeliveryUi);
       handleClose();
     }
   };
 
   const handleClose = () => {
-    setFormData({
-      supplierName: "",
-      driverName: "",
-      deliveryDate: new Date().toISOString().split("T")[0],
-      deliveryTime: new Date().toTimeString().slice(0, 5),
-      fishTypes: [{ baseType: "", type: "", quantity: "", unit: "box" }],
-    });
     setErrors({});
     onClose();
   };
+
+  if (!delivery) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="إضافة توصيل جديد"
+      title="تعديل التوصيل"
       size="lg"
     >
       <div className="space-y-6">
@@ -240,7 +261,9 @@ export const AddDeliveryModal = ({
               >
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-medium text-gray-700">
-                    نوع السمك {index + 1}
+                    {fish.type
+                      ? `${fish.type} - ${fish.weight} كجم - ${fish.pricePerKg} ج.م/كجم`
+                      : `نوع السمك ${index + 1}`}
                   </span>
                   {formData.fishTypes.length > 1 && (
                     <button
@@ -252,7 +275,7 @@ export const AddDeliveryModal = ({
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
                       النوع الأساسي
@@ -261,21 +284,18 @@ export const AddDeliveryModal = ({
                       value={fish.baseType || ""}
                       onChange={(e) => {
                         handleFishTypeChange(index, "baseType", e.target.value);
-                        // reset subtype when base changes
                         handleFishTypeChange(index, "type", "");
                       }}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">اختر النوع الأساسي</option>
-                      {bases.length === 0 ? (
-                        <option value="">لا توجد فئات أساسية</option>
-                      ) : (
-                        bases.map((t) => (
+                      {types
+                        .filter((t) => t.isBase)
+                        .map((t) => (
                           <option key={t.id} value={t.name}>
                             {t.name}
                           </option>
-                        ))
-                      )}
+                        ))}
                     </select>
                   </div>
                   <div>
@@ -290,18 +310,16 @@ export const AddDeliveryModal = ({
                       className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">اختر النوع الفرعي</option>
-                      {(!fish.baseType || fish.baseType === "") && (
-                        <option value="">اختر النوع الأساسي أولاً</option>
-                      )}
-                      {fish.baseType &&
-                        (getSubtypesForBase(fish.baseType).length === 0 ? (
-                          <option value="">لا توجد أنواع فرعية</option>
-                        ) : (
-                          getSubtypesForBase(fish.baseType).map((t) => (
-                            <option key={t.id} value={t.name}>
-                              {t.name}
-                            </option>
-                          ))
+                      {types
+                        .filter(
+                          (t) =>
+                            !t.isBase &&
+                            (t.category || "") === (fish.baseType || "")
+                        )
+                        .map((t) => (
+                          <option key={t.id} value={t.name}>
+                            {t.name}
+                          </option>
                         ))}
                     </select>
                     {errors[`fishType_${index}`] && (
@@ -310,42 +328,26 @@ export const AddDeliveryModal = ({
                       </p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-1">
-                      الكمية
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="الكمية"
-                        type="number"
-                        step="0.1"
-                        value={fish.quantity}
-                        onChange={(e) =>
-                          handleFishTypeChange(
-                            index,
-                            "quantity",
-                            e.target.value
-                          )
-                        }
-                        error={errors[`quantity_${index}`]}
-                      />
-                      <select
-                        value={fish.unit || "box"}
-                        onChange={(e) =>
-                          handleFishTypeChange(index, "unit", e.target.value)
-                        }
-                        className="block px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="box">صندوق (25 كجم)</option>
-                        <option value="kg">كجم</option>
-                      </select>
-                    </div>
-                    {errors[`quantity_${index}`] && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {errors[`quantity_${index}`]}
-                      </p>
-                    )}
-                  </div>
+                  <Input
+                    placeholder="الوزن (كجم)"
+                    type="number"
+                    step="0.1"
+                    value={fish.weight}
+                    onChange={(e) =>
+                      handleFishTypeChange(index, "weight", e.target.value)
+                    }
+                    error={errors[`weight_${index}`]}
+                  />
+                  <Input
+                    placeholder="السعر/كجم"
+                    type="number"
+                    step="0.01"
+                    value={fish.pricePerKg}
+                    onChange={(e) =>
+                      handleFishTypeChange(index, "pricePerKg", e.target.value)
+                    }
+                    error={errors[`price_${index}`]}
+                  />
                 </div>
               </div>
             ))}
@@ -356,7 +358,7 @@ export const AddDeliveryModal = ({
           <Button variant="outline" onClick={handleClose}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit}>إضافة التوصيل</Button>
+          <Button onClick={handleSubmit}>حفظ التغييرات</Button>
         </div>
       </div>
     </Modal>

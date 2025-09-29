@@ -7,14 +7,14 @@ export interface SupplierDto {
   nickName?: string;
 }
 
-export interface TypeDto {
+export interface CategoryDto {
   id: string;
   name: string;
   isBase?: boolean;
   category?: string | null;
 }
 
-export interface TruckDto {
+export interface DeliveryDto {
   id: string;
   supplierId?: string | null;
   supplierName: string;
@@ -27,16 +27,13 @@ export interface TruckDto {
   totalDue: number;
 }
 
-export interface TruckItemDto {
+export interface DeliveryItemDto {
   id: string;
   truckId: string | null;
   typeId: string | null;
   amount: number; // weight
   classification?: string | null;
 }
-
-export type DeliveryDto = TruckDto;
-export type DeliveryItemDto = TruckItemDto;
 
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
@@ -83,11 +80,11 @@ export const deliveriesApi = {
     return Array.isArray(data) ? data : data?.items ?? [];
   },
 
-  async getTypes(): Promise<TypeDto[]> {
+  async getTypes(): Promise<CategoryDto[]> {
     // backend exposes categories at /category returning main categories with nested subcategories
     const { data } = await api.get("/category");
     const items = Array.isArray(data) ? data : data?.items ?? [];
-    const result: TypeDto[] = [];
+    const result: CategoryDto[] = [];
     for (const main of items) {
       result.push({
         id: main.id,
@@ -145,10 +142,10 @@ export const deliveriesApi = {
 
   async ensureTypeByName(
     name: string,
-    existing: Map<string, TypeDto>,
+    existing: Map<string, CategoryDto>,
     baseName?: string
-  ): Promise<TypeDto> {
-    const isBase = (t: TypeDto) =>
+  ): Promise<CategoryDto> {
+    const isBase = (t: CategoryDto) =>
       t?.isBase === true ||
       (t as unknown as { is_base?: boolean })?.is_base === true;
     // try exact match (case-sensitive first), fallback to case-insensitive
@@ -236,9 +233,9 @@ export const deliveriesApi = {
   },
 
   assembleDeliveries(
-    trucks: DeliveryDto[],
+    deliveries: DeliveryDto[],
     items: DeliveryItemDto[],
-    types: TypeDto[]
+    types: CategoryDto[]
   ): DeliveryUi[] {
     const typeById = new Map(types.map((t) => [t.id, t] as const));
     const itemsByTruck = new Map<string, DeliveryItemDto[]>();
@@ -248,7 +245,7 @@ export const deliveriesApi = {
       arr.push(it);
       itemsByTruck.set(it.truckId, arr);
     }
-    return trucks.map((t) => {
+    return deliveries.map((t) => {
       const its = itemsByTruck.get(t.id) || [];
       const fishTypes: FishTypeUi[] = its.map((it) => ({
         type: it.typeId
@@ -280,16 +277,16 @@ export const deliveriesApi = {
       } as DeliveryUi;
     });
   },
-  splitBaseAndSubtypes(types: TypeDto[]) {
+  splitBaseAndSubtypes(types: CategoryDto[]) {
     const bases = types.filter((t) => t.isBase);
     const subs = types.filter((t) => !t.isBase);
-    const byBase: Record<string, TypeDto[]> = {};
+    const byBase: Record<string, CategoryDto[]> = {};
     for (const base of bases) {
       byBase[base.name] = subs.filter((s) => (s.category || "") === base.name);
     }
     return { bases, subs, byBase };
   },
-  getSubtypesForBase(types: TypeDto[], baseName: string) {
+  getSubtypesForBase(types: CategoryDto[], baseName: string) {
     const { byBase } = this.splitBaseAndSubtypes(types);
     return byBase[baseName] || [];
   },

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// @ts-expect-error Modal is a JS/JSX module without TS types
 import { Modal } from "../../common/Modal";
 import { Button } from "../../ui/Button";
 import { Input } from "../../ui/Input";

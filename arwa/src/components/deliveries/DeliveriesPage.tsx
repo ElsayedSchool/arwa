@@ -5,19 +5,14 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Badge } from "../common/Badge";
 import { TopNavigation } from "../common/TopNavigation";
-// @ts-expect-error - JSX modules
 import { DeliveriesTable } from "./components/DeliveriesTable";
-// @ts-expect-error - JSX modules
 import { AddDeliveryModal } from "./modals/AddDeliveryModal";
-// @ts-expect-error - JSX modules
 import { EditDeliveryModal } from "./modals/EditDeliveryModal";
-// @ts-expect-error - JSX modules
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
-// @ts-expect-error - JSX modules
 import { EnterCostModal } from "./modals/EnterCostModal";
 import deliveriesApi, {
   type DeliveryUi,
-  type TypeDto,
+  type CategoryDto,
 } from "./api/deliveriesApi";
 import { useSupplierStore } from "../../stores/supplierStore";
 
@@ -51,7 +46,7 @@ const DeliveriesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(10);
   const [typeNames, setTypeNames] = useState<string[]>([]);
-  const [types, setTypes] = useState<TypeDto[]>([]);
+  const [types, setTypes] = useState<CategoryDto[]>([]);
 
   // Modals state
   const [showAddModal, setShowAddModal] = useState<boolean>(false);

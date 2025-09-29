@@ -2,8 +2,18 @@ import React from "react";
 import { Calendar, User, Truck, Package, DollarSign } from "lucide-react";
 import { Modal } from "../../common/Modal";
 import { Badge } from "../../common/Badge";
+import { type DeliveryUi } from "../api/deliveriesApi";
 
-export const DeliveryDetailsModal = ({
+interface DeliveryDetailsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  delivery: DeliveryUi | null;
+  userRole: string;
+  getPaymentStatusText: (status: string) => string;
+  getPaymentStatusVariant: (status: string) => string;
+}
+
+export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
   isOpen,
   onClose,
   delivery,
@@ -15,7 +25,7 @@ export const DeliveryDetailsModal = ({
 
   const isAdmin = userRole === "admin" || userRole === "owner";
 
-  const formatDateTime = (date, time) => {
+  const formatDateTime = (date: string, time: string) => {
     const formattedDate = new Date(date).toLocaleDateString("ar-EG");
     return `${formattedDate} - ${time}`;
   };
@@ -70,7 +80,16 @@ export const DeliveryDetailsModal = ({
         <div className="border-t pt-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-500">حالة الدفع</span>
-            <Badge variant={getPaymentStatusVariant(delivery.paymentStatus)}>
+            <Badge
+              variant={
+                getPaymentStatusVariant(delivery.paymentStatus) as
+                  | "default"
+                  | "success"
+                  | "warning"
+                  | "danger"
+                  | "info"
+              }
+            >
               {getPaymentStatusText(delivery.paymentStatus)}
             </Badge>
           </div>
@@ -118,7 +137,7 @@ export const DeliveryDetailsModal = ({
             أنواع الأسماك
           </h3>
           <div className="space-y-3">
-            {delivery.fishTypes.map((fish, index) => (
+            {delivery.fishTypes.map((fish, index: number) => (
               <div
                 key={index}
                 className="border border-gray-200 rounded-lg p-4"

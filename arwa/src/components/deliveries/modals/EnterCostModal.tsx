@@ -2,44 +2,62 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "../../common/Modal";
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
+import { type DeliveryUi } from "../api/deliveriesApi";
 
-export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
-  const [formData, setFormData] = useState({
+interface EnterCostModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (
+    deliveryId: string,
+    data: { totalCost: number; amountPaid: number }
+  ) => void;
+  delivery: DeliveryUi | null;
+}
+
+interface CostFormData {
+  totalCost: string;
+  amountPaid: string;
+}
+
+export const EnterCostModal: React.FC<EnterCostModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  delivery,
+}) => {
+  const [formData, setFormData] = useState<CostFormData>({
     totalCost: "",
     amountPaid: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (delivery) {
       setFormData({
-        totalCost: delivery.totalCost || "",
-        amountPaid: delivery.amountPaid || "",
+        totalCost: delivery.totalCost?.toString() || "",
+        amountPaid: delivery.amountPaid?.toString() || "",
       });
     }
   }, [delivery]);
 
-  const handleInputChange = (field, value) => {
+  if (!delivery) return null;
+
+  const handleInputChange = (field: keyof CostFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-    if (!formData.totalCost || formData.totalCost <= 0) {
-      newErrors.totalCost = "التكلفة الإجمالية مطلوبة ويجب أن تكون أكبر من صفر";
+    if (!formData.totalCost || parseFloat(formData.totalCost) <= 0) {
+      newErrors.totalCost = "Total cost must be a positive number";
     }
 
-    if (formData.amountPaid < 0) {
-      newErrors.amountPaid = "المبلغ المدفوع لا يمكن أن يكون سالباً";
-    }
-
-    if (parseFloat(formData.amountPaid) > parseFloat(formData.totalCost)) {
-      newErrors.amountPaid =
-        "المبلغ المدفوع لا يمكن أن يكون أكبر من التكلفة الإجمالية";
+    if (parseFloat(formData.amountPaid) < 0) {
+      newErrors.amountPaid = "Amount paid cannot be negative";
     }
 
     setErrors(newErrors);
@@ -50,7 +68,7 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
     if (validateForm()) {
       const costData = {
         totalCost: parseFloat(formData.totalCost),
-        amountPaid: parseFloat(formData.amountPaid || 0),
+        amountPaid: parseFloat(formData.amountPaid || "0"),
       };
       onSave(delivery.id, costData);
       handleClose();
@@ -66,7 +84,8 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
   if (!delivery) return null;
 
   const remainingAmount =
-    parseFloat(formData.totalCost || 0) - parseFloat(formData.amountPaid || 0);
+    parseFloat(formData.totalCost || "0") -
+    parseFloat(formData.amountPaid || "0");
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="إدخال تكلفة التوصيل">
@@ -113,13 +132,14 @@ export const EnterCostModal = ({ isOpen, onClose, onSave, delivery }) => {
                 <div>
                   <span className="text-gray-600">التكلفة الإجمالية:</span>
                   <span className="font-medium mr-2">
-                    {parseFloat(formData.totalCost || 0).toLocaleString()} ج.م
+                    {parseFloat(formData.totalCost || "0").toLocaleString()} ج.م
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">المبلغ المدفوع:</span>
                   <span className="font-medium mr-2">
-                    {parseFloat(formData.amountPaid || 0).toLocaleString()} ج.م
+                    {parseFloat(formData.amountPaid || "0").toLocaleString()}{" "}
+                    ج.م
                   </span>
                 </div>
                 <div className="col-span-2">
