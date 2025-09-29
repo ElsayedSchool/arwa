@@ -14,14 +14,17 @@ interface DeliveriesFiltersProps {
   onSearchTermChange: (value: string) => void;
   selectedSupplier: string;
   onSelectedSupplierChange: (value: string) => void;
-  selectedFishType: string;
-  onSelectedFishTypeChange: (value: string) => void;
+  selectedBaseType: string;
+  onSelectedBaseTypeChange: (value: string) => void;
+  selectedSubtype: string;
+  onSelectedSubtypeChange: (value: string) => void;
   dateFilter: string;
   onDateFilterChange: (value: string) => void;
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
   supplierNames: string[];
-  typeNames: string[];
+  baseTypeNames: string[];
+  subtypeNames: string[];
   onExportData: () => void;
   onClearFilters: () => void;
 }
@@ -31,14 +34,17 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
   onSearchTermChange,
   selectedSupplier,
   onSelectedSupplierChange,
-  selectedFishType,
-  onSelectedFishTypeChange,
+  selectedBaseType,
+  onSelectedBaseTypeChange,
+  selectedSubtype,
+  onSelectedSubtypeChange,
   dateFilter,
   onDateFilterChange,
   dateRange,
   onDateRangeChange,
   supplierNames,
-  typeNames,
+  baseTypeNames,
+  subtypeNames,
   onExportData,
   onClearFilters,
 }) => {
@@ -57,7 +63,7 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {/* Search */}
         <div className="relative">
           <Search
@@ -86,16 +92,33 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
           ))}
         </select>
 
-        {/* Fish Type Filter */}
+        {/* Base Fish Type Filter */}
         <select
-          value={selectedFishType}
-          onChange={(e) => onSelectedFishTypeChange(e.target.value)}
+          value={selectedBaseType}
+          onChange={(e) => onSelectedBaseTypeChange(e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="">جميع أنواع الأسماك</option>
-          {typeNames.map((fishType) => (
-            <option key={fishType} value={fishType}>
-              {fishType}
+          <option value="">جميع الأنواع الأساسية</option>
+          {baseTypeNames.map((baseType) => (
+            <option key={baseType} value={baseType}>
+              {baseType}
+            </option>
+          ))}
+        </select>
+
+        {/* Subtype Filter */}
+        <select
+          value={selectedSubtype}
+          onChange={(e) => onSelectedSubtypeChange(e.target.value)}
+          disabled={!selectedBaseType}
+          className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+          <option value="">
+            {selectedBaseType ? "جميع الأنواع الفرعية" : "اختر نوع أساسي أولاً"}
+          </option>
+          {subtypeNames.map((subtype) => (
+            <option key={subtype} value={subtype}>
+              {subtype}
             </option>
           ))}
         </select>
@@ -139,7 +162,8 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
       {/* Active Filters Display */}
       {(searchTerm ||
         selectedSupplier ||
-        selectedFishType ||
+        selectedBaseType ||
+        selectedSubtype ||
         dateFilter !== "all" ||
         dateRange.from ||
         dateRange.to) && (
@@ -148,8 +172,11 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
           {selectedSupplier && (
             <Badge variant="default">المورد: {selectedSupplier}</Badge>
           )}
-          {selectedFishType && (
-            <Badge variant="default">نوع السمك: {selectedFishType}</Badge>
+          {selectedBaseType && (
+            <Badge variant="default">النوع الأساسي: {selectedBaseType}</Badge>
+          )}
+          {selectedSubtype && (
+            <Badge variant="default">النوع الفرعي: {selectedSubtype}</Badge>
           )}
           {dateFilter !== "all" && (
             <Badge variant="default">

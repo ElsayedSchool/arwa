@@ -40,12 +40,14 @@ const DeliveriesPage: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
-  const [selectedFishType, setSelectedFishType] = useState<string>("");
+  const [selectedBaseType, setSelectedBaseType] = useState<string>("");
+  const [selectedSubtype, setSelectedSubtype] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(10);
-  const [typeNames, setTypeNames] = useState<string[]>([]);
+  const [baseTypeNames, setBaseTypeNames] = useState<string[]>([]);
+  const [subtypeNames, setSubtypeNames] = useState<string[]>([]);
   const [types, setTypes] = useState<CategoryDto[]>([]);
 
   // Modals state
@@ -82,11 +84,24 @@ const DeliveriesPage: React.FC = () => {
       }
 
       // Fish type filter
-      if (
-        selectedFishType &&
-        !delivery.fishTypes?.some((fish) => fish.type === selectedFishType)
-      ) {
-        return false;
+      if (selectedBaseType || selectedSubtype) {
+        const hasMatchingType = delivery.fishTypes?.some((fish) => {
+          const fishType = types.find(t => t.name === fish.type);
+          if (!fishType) return false;
+
+          if (selectedSubtype) {
+            // If subtype is selected, match exactly
+            return fish.type === selectedSubtype;
+          } else if (selectedBaseType) {
+            // If base type is selected, match base type or any of its subtypes
+            return fishType.category === selectedBaseType || fishType.name === selectedBaseType;
+          }
+          return false;
+        });
+
+        if (!hasMatchingType) {
+          return false;
+        }
       }
 
       // Date filter
@@ -115,9 +130,11 @@ const DeliveriesPage: React.FC = () => {
     deliveriesData,
     searchTerm,
     selectedSupplier,
-    selectedFishType,
+    selectedBaseType,
+    selectedSubtype,
     dateFilter,
     dateRange,
+    types,
   ]);
 
   // Calculate analytics based on filtered data
@@ -268,7 +285,9 @@ const DeliveriesPage: React.FC = () => {
       if (!types || types.length === 0) {
         const latest = await deliveriesApi.getTypes();
         setTypes(latest);
-        setTypeNames(latest.map((t) => t.name));
+        // Split types into base and subtypes
+        const { bases } = deliveriesApi.splitBaseAndSubtypes(latest);
+        setBaseTypeNames(bases.map((t) => t.name));
       }
     } catch (e) {
       console.error("Failed to load types before opening modal", e);
@@ -280,7 +299,8 @@ const DeliveriesPage: React.FC = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedSupplier("");
-    setSelectedFishType("");
+    setSelectedBaseType("");
+    setSelectedSubtype("");
     setDateFilter("all");
     setDateRange({ from: "", to: "" });
   };
@@ -288,7 +308,8 @@ const DeliveriesPage: React.FC = () => {
   const fetchDeliveries = useCallback(async () => {
     const filters: Record<string, string> = {};
     if (selectedSupplier) filters.supplierName = selectedSupplier;
-    if (selectedFishType) filters.fishType = selectedFishType;
+    if (selectedBaseType) filters.baseType = selectedBaseType;
+    if (selectedSubtype) filters.fishType = selectedSubtype;
     if (dateFilter && dateFilter !== "all") {
       filters.dateFilter = dateFilter;
       if (dateFilter === "range") {
@@ -306,9 +327,13 @@ const DeliveriesPage: React.FC = () => {
     console.debug("deliveries.fetchDeliveries: types=", types);
     const assembled = deliveriesApi.assembleDeliveries(trucks, items, types);
     setDeliveriesData(assembled);
-    setTypeNames(types.map((t) => t.name));
+
+    // Split types into base and subtypes
+    const { bases } = deliveriesApi.splitBaseAndSubtypes(types);
+    setBaseTypeNames(bases.map((t) => t.name));
+    setSubtypeNames([]);
     setTypes(types);
-  }, [selectedSupplier, selectedFishType, dateFilter, dateRange]);
+  }, [selectedSupplier, selectedBaseType, selectedSubtype, dateFilter, dateRange]);
 
   useEffect(() => {
     // initial data load: suppliers for modal, and current deliveries list
@@ -321,6 +346,19 @@ const DeliveriesPage: React.FC = () => {
     };
     void init();
   }, [fetchSuppliers, fetchDeliveries]);
+
+  // Update subtype names when base type changes
+  useEffect(() => {
+    if (selectedBaseType && types.length > 0) {
+      const subtypes = deliveriesApi.getSubtypesForBase(types, selectedBaseType);
+      setSubtypeNames(subtypes.map(t => t.name));
+      // Clear subtype selection when base type changes
+      setSelectedSubtype("");
+    } else {
+      setSubtypeNames([]);
+      setSelectedSubtype("");
+    }
+  }, [selectedBaseType, types]);
 
   const exportDeliveriesData = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -337,7 +375,8 @@ const DeliveriesPage: React.FC = () => {
       ["الفلاتر المطبقة:"],
       ["البحث:", searchTerm || "غير محدد"],
       ["المورد:", selectedSupplier || "جميع الموردين"],
-      ["نوع السمك:", selectedFishType || "جميع الأنواع"],
+      ["النوع الأساسي:", selectedBaseType || "جميع الأنواع الأساسية"],
+      ["النوع الفرعي:", selectedSubtype || "جميع الأنواع الفرعية"],
       [
         "التاريخ:",
         dateFilter === "all"
@@ -548,14 +587,17 @@ const DeliveriesPage: React.FC = () => {
           onSearchTermChange={setSearchTerm}
           selectedSupplier={selectedSupplier}
           onSelectedSupplierChange={setSelectedSupplier}
-          selectedFishType={selectedFishType}
-          onSelectedFishTypeChange={setSelectedFishType}
+          selectedBaseType={selectedBaseType}
+          onSelectedBaseTypeChange={setSelectedBaseType}
+          selectedSubtype={selectedSubtype}
+          onSelectedSubtypeChange={setSelectedSubtype}
           dateFilter={dateFilter}
           onDateFilterChange={setDateFilter}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           supplierNames={supplierNames}
-          typeNames={typeNames}
+          baseTypeNames={baseTypeNames}
+          subtypeNames={subtypeNames}
           onExportData={exportDeliveriesData}
           onClearFilters={clearFilters}
         />
