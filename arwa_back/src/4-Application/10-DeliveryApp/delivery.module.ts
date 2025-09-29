@@ -4,8 +4,10 @@ import { GetAllDeliveryHandler } from "./Queries/getAllDelivery.Handler";
 import { GetByIdDeliveryHandler } from "./Queries/getByIdDelivery.Handler";
 import { UpsertDeliveryHandler } from "./Commands/upsertDelivery.Handler";
 import { DeleteDeliveryHandler } from "./Commands/deleteDelivery.Handler";
+import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.module";
 
 @Module({
+  imports: [RepositoryModule],
   controllers: [DeliveryController],
   providers: [
     GetAllDeliveryHandler,

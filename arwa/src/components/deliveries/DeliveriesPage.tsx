@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import ExcelJS from "exceljs";
 import { Plus, Search, Truck, Download, Package, Users } from "lucide-react";
 import { Button } from "../ui/Button";
@@ -267,6 +267,21 @@ const DeliveriesPage: React.FC = () => {
     }
   };
 
+  // Ensure types exist before opening Add modal
+  const openAddModal = useCallback(async () => {
+    try {
+      if (!types || types.length === 0) {
+        const latest = await deliveriesApi.getTypes();
+        setTypes(latest);
+        setTypeNames(latest.map((t) => t.name));
+      }
+    } catch (e) {
+      console.error("Failed to load types before opening modal", e);
+    } finally {
+      setShowAddModal(true);
+    }
+  }, [types]);
+
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedSupplier("");
@@ -275,17 +290,30 @@ const DeliveriesPage: React.FC = () => {
     setDateRange({ from: "", to: "" });
   };
 
-  const fetchDeliveries = async () => {
+  const fetchDeliveries = useCallback(async () => {
+    const filters: Record<string, string> = {};
+    if (selectedSupplier) filters.supplierName = selectedSupplier;
+    if (selectedFishType) filters.fishType = selectedFishType;
+    if (dateFilter && dateFilter !== "all") {
+      filters.dateFilter = dateFilter;
+      if (dateFilter === "range") {
+        if (dateRange.from) filters.from = dateRange.from;
+        if (dateRange.to) filters.to = dateRange.to;
+      }
+    }
+
     const [trucks, items, types] = await Promise.all([
-      deliveriesApi.getDeliveries(),
+      deliveriesApi.getDeliveries(filters),
       deliveriesApi.getDeliveryItems(),
       deliveriesApi.getTypes(),
     ]);
+    // Debug: log types returned from API to verify shape and presence (temporary)
+    console.debug("deliveries.fetchDeliveries: types=", types);
     const assembled = deliveriesApi.assembleDeliveries(trucks, items, types);
     setDeliveriesData(assembled);
     setTypeNames(types.map((t) => t.name));
     setTypes(types);
-  };
+  }, [selectedSupplier, selectedFishType, dateFilter, dateRange]);
 
   useEffect(() => {
     // initial data load: suppliers for modal, and current deliveries list
@@ -297,7 +325,7 @@ const DeliveriesPage: React.FC = () => {
       }
     };
     void init();
-  }, [fetchSuppliers]);
+  }, [fetchSuppliers, fetchDeliveries]);
 
   const exportDeliveriesData = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -510,7 +538,7 @@ const DeliveriesPage: React.FC = () => {
               </p>
             </div>
             <Button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => void openAddModal()}
               className="inline-flex items-center"
             >
               <Plus size={20} className="ml-2" />

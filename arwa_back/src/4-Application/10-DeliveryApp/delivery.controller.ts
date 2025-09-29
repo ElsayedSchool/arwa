@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Body, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Delete,
+  Query,
+} from "@nestjs/common";
 import { GetAllDeliveryHandler } from "./Queries/getAllDelivery.Handler";
 import { GetByIdDeliveryHandler } from "./Queries/getByIdDelivery.Handler";
 import { UpsertDeliveryHandler } from "./Commands/upsertDelivery.Handler";
@@ -16,8 +24,9 @@ export class DeliveryController {
   ) {}
 
   @Get()
-  async all() {
-    return this.getAll.handle();
+  async all(@Query() q: any) {
+    // pass through query parameters to handler for filtering
+    return this.getAll.handle(q || {});
   }
 
   @Get(":id")

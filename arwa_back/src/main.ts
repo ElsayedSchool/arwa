@@ -45,6 +45,7 @@ async function bootstrap() {
     ],
   };
   app.enableCors(corsOptions);
+  app.setGlobalPrefix("api");
 
   await app.get<SeedDataService>(SeedDataService).SeedData();
 

@@ -35,8 +35,8 @@ export interface TruckItemDto {
   classification?: string | null;
 }
 
-export interface DeliveryDto extends TruckDto {}
-export interface DeliveryItemDto extends TruckItemDto {}
+export type DeliveryDto = TruckDto;
+export type DeliveryItemDto = TruckItemDto;
 
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
@@ -84,12 +84,57 @@ export const deliveriesApi = {
   },
 
   async getTypes(): Promise<TypeDto[]> {
-    const { data } = await api.get("/type");
-    return Array.isArray(data) ? data : data?.items ?? [];
+    // backend exposes categories at /category returning main categories with nested subcategories
+    const { data } = await api.get("/category");
+    const items = Array.isArray(data) ? data : data?.items ?? [];
+    const result: TypeDto[] = [];
+    for (const main of items) {
+      result.push({
+        id: main.id,
+        name: main.name,
+        isBase: true,
+        category: null,
+      });
+      // Be tolerant to different backend keys for sub-collections
+      const subCandidates = ((Array.isArray(main.subcategories) &&
+        main.subcategories) ||
+        (Array.isArray(main.subCategories) && main.subCategories) ||
+        (Array.isArray(main.children) && main.children) ||
+        (Array.isArray(main.subs) && main.subs) ||
+        (Array.isArray(main.subTypes) && main.subTypes) ||
+        (Array.isArray(main.sub_types) && main.sub_types) ||
+        (Array.isArray(main.types) && main.types) ||
+        (Array.isArray(main.items) && main.items) ||
+        (Array.isArray(main.SubCategories) && main.SubCategories) ||
+        (Array.isArray(main?.subs?.items) && main.subs.items) ||
+        []) as unknown[];
+      for (const raw of subCandidates) {
+        const sub = raw as { id?: string | number; name?: string };
+        if (
+          sub &&
+          (typeof sub.id === "string" || typeof sub.id === "number") &&
+          typeof sub.name === "string"
+        ) {
+          result.push({
+            id: String(sub.id),
+            name: sub.name,
+            isBase: false,
+            category: main.name,
+          });
+        }
+      }
+    }
+    return result;
   },
 
-  async getDeliveries(): Promise<DeliveryDto[]> {
-    const { data } = await api.get("/delivery");
+  async getDeliveries(filters?: {
+    supplierName?: string;
+    dateFilter?: string;
+    from?: string;
+    to?: string;
+    fishType?: string;
+  }): Promise<DeliveryDto[]> {
+    const { data } = await api.get("/delivery", { params: filters });
     return Array.isArray(data) ? data : data?.items ?? [];
   },
 
@@ -103,6 +148,9 @@ export const deliveriesApi = {
     existing: Map<string, TypeDto>,
     baseName?: string
   ): Promise<TypeDto> {
+    const isBase = (t: TypeDto) =>
+      t?.isBase === true ||
+      (t as unknown as { is_base?: boolean })?.is_base === true;
     // try exact match (case-sensitive first), fallback to case-insensitive
     for (const t of existing.values()) {
       if (t.name === name) return t;
@@ -110,11 +158,47 @@ export const deliveriesApi = {
     for (const t of existing.values()) {
       if (t.name.toLowerCase() === name.toLowerCase()) return t;
     }
-    const payload: Partial<TypeDto> = baseName
-      ? { name, isBase: false, category: baseName }
-      : { name };
-    const { data } = await api.post("/type", payload);
-    const created: TypeDto = data;
+    // The backend uses /category for creating/updating categories. It returns boolean,
+    // so after posting we refresh the list and return the created type.
+    // Ensure base exists (if requested)
+    const refreshTypes = async () => {
+      const latest = await this.getTypes();
+      for (const t of latest) existing.set(t.id, t);
+      return latest;
+    };
+
+    // find base id if needed
+    let baseId: string | undefined;
+    if (baseName) {
+      for (const t of existing.values()) {
+        if (isBase(t) && t.name === baseName) {
+          baseId = t.id;
+          break;
+        }
+      }
+      if (!baseId) {
+        // create main category
+        await api.post("/category", { name: baseName, type: "main" });
+        const latest = await refreshTypes();
+        const found = latest.find((x) => x.name === baseName && x.isBase);
+        baseId = found?.id;
+      }
+    }
+
+    // create sub or main
+    if (baseName) {
+      await api.post("/category", {
+        name,
+        type: "sub",
+        mainCategoryId: Number(baseId),
+      });
+    } else {
+      await api.post("/category", { name, type: "main" });
+    }
+
+    const latest = await refreshTypes();
+    const created = latest.find((t) => t.name === name);
+    if (!created) throw new Error("Failed to create type");
     existing.set(created.id, created);
     return created;
   },
