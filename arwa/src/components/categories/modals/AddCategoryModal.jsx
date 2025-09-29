@@ -52,8 +52,8 @@ export const AddCategoryModal = ({
     if (type === "sub") {
       if (!formData.character.trim()) {
         newErrors.character = "الرمز مطلوب";
-      } else if (formData.character.length !== 1) {
-        newErrors.character = "الرمز يجب أن يكون حرف واحد فقط";
+      } else if (formData.character.length > 2) {
+        newErrors.character = "الرمز يجب أن لا يزيد عن حرفين";
       }
     }
 
@@ -127,8 +127,8 @@ export const AddCategoryModal = ({
               onChange={(e) =>
                 handleInputChange("character", e.target.value.slice(0, 1))
               }
-              placeholder="حرف واحد فقط"
-              maxLength={1}
+              placeholder="اقصى حرفين"
+              maxLength={2}
               error={errors.character}
             />
 

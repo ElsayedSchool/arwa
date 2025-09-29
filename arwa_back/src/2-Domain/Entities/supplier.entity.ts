@@ -8,7 +8,7 @@ import {
   Index,
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
-import { Truck } from "./truck.entity";
+import { Delivery } from "./delivery.entity";
 
 @Entity()
 export class Supplier extends BaseDelete {
@@ -48,8 +48,8 @@ export class Supplier extends BaseDelete {
   @CreateDateColumn()
   JoinDate: Date;
 
-  @OneToMany(() => Truck, (truck) => truck.supplier)
-  trucks: Truck[];
+  @OneToMany(() => Delivery, (delivery) => delivery.supplier)
+  deliveries: Delivery[];
   // inherited soft-delete fields
 
   @Column({ nullable: true })

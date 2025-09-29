@@ -8,9 +8,6 @@ export { OrderRepo } from "./order.repository";
 export * from "./sold.repository";
 export * from "./payment.repository";
 export * from "./supplier.repository";
-export * from "./truck.repository";
-export * from "./truckItem.repository";
-export * from "./type.repository";
 export * from "../soft.repository";
 export * from "../base.repository";
 
@@ -24,6 +21,5 @@ export { InventoryRepo } from "./inventory.repository";
 export { SoldRepo } from "./sold.repository";
 export { PaymentRepo } from "./payment.repository";
 export { SupplierRepo } from "./supplier.repository";
-export { TruckRepo } from "./truck.repository";
-export { TruckItemRepo } from "./truckItem.repository";
-export { TypeRepo } from "./type.repository";
+export { DeliveryRepo } from "./delivery.repository";
+export { DeliveryItemRepo } from "./deliveryItem.repository";

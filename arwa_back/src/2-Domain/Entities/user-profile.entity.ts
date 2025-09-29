@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { User } from "./user.entity";
-import { Truck } from "./truck.entity";
+import { Delivery } from "./delivery.entity";
 
 @Entity()
 export class UserProfile {
@@ -37,8 +37,8 @@ export class UserProfile {
   @JoinColumn({ name: "id", referencedColumnName: "id" })
   owner: User;
 
-  @OneToMany(() => Truck, (truck) => truck.profile)
-  trucks: Truck[];
+  @OneToMany(() => Delivery, (delivery) => delivery.profile)
+  deliveries: Delivery[];
 
   @Column({ nullable: true })
   deletedBy: string | null;

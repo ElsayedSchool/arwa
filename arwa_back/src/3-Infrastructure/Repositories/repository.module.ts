@@ -10,9 +10,8 @@ import {
   SoldRepo,
   PaymentRepo,
   SupplierRepo,
-  TruckRepo,
-  TruckItemRepo,
-  TypeRepo,
+  DeliveryRepo,
+  DeliveryItemRepo,
 } from "./index";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -20,15 +19,14 @@ import {
   User,
   UserProfile,
   Category,
-  Type,
   Customer,
   Inventory,
   Order,
   Sold,
   Payment,
   Supplier,
-  Truck,
-  TruckItem,
+  Delivery,
+  DeliveryItem,
 } from "src/2-Domain/index";
 import { PhotosService } from "../PhotosApi/photos.service";
 import { AppTimeModule } from "../timeService/time.Module";
@@ -41,15 +39,14 @@ import { TranslateModule } from "../Translation/tanslation.module";
       User,
       UserProfile,
       Category,
-      Type,
       Customer,
       Inventory,
       Order,
       Sold,
       Payment,
       Supplier,
-      Truck,
-      TruckItem,
+      Delivery,
+      DeliveryItem,
     ]),
     ConfigModule,
     AppTimeModule,
@@ -70,9 +67,8 @@ import { TranslateModule } from "../Translation/tanslation.module";
     SoldRepo,
     PaymentRepo,
     SupplierRepo,
-    TruckRepo,
-    TruckItemRepo,
-    TypeRepo,
+    DeliveryRepo,
+    DeliveryItemRepo,
   ],
   exports: [
     ProfileRepo,
@@ -85,9 +81,8 @@ import { TranslateModule } from "../Translation/tanslation.module";
     SoldRepo,
     PaymentRepo,
     SupplierRepo,
-    TruckRepo,
-    TruckItemRepo,
-    TypeRepo,
+    DeliveryRepo,
+    DeliveryItemRepo,
     {
       provide: "Logger", // Provide a token or identifier for the logger
       useValue: winstonLoggerConfig, // Use the logger instance from your winstonLoggerConfig

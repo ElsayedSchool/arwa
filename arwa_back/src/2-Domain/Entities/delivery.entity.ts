@@ -13,7 +13,7 @@ import { BaseDelete } from "./base-delete.entity";
 import { OneToMany } from "typeorm";
 import { Supplier } from "./supplier.entity";
 import { UserProfile } from "./user-profile.entity";
-import { DeliveryItem } from "./truckItem.entity";
+import { DeliveryItem } from "./deliveryItem.entity";
 
 @Entity()
 export class Delivery extends BaseDelete {
@@ -70,7 +70,7 @@ export class Delivery extends BaseDelete {
   @Column({ type: "decimal", default: 0 })
   totalDue: number;
 
-  @OneToMany(() => DeliveryItem, (ti) => ti.delivery)
+  @OneToMany(() => DeliveryItem, (di) => di.delivery)
   deliveryItems: DeliveryItem[];
   // inherits soft-delete fields from BaseDelete
 

@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
 import { CategoryType } from "../Enums";
+import { DeliveryItem } from "./deliveryItem.entity";
 
 @Entity()
 @Index(["mainCategoryId", "name"], { unique: true })
@@ -58,6 +59,9 @@ export class Category extends BaseDelete {
   // children (subcategories) - inverse side
   @OneToMany(() => Category, (category) => category.mainCategory)
   subcategories?: Category[];
+
+  @OneToMany(() => DeliveryItem, (deliveryItem) => deliveryItem.type)
+  deliveryItems?: DeliveryItem[];
 
   @Index()
   @Column({ default: false })

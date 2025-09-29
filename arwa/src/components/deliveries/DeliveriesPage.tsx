@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ExcelJS from "exceljs";
 import { Plus, Search, Truck, Download, Package, Users } from "lucide-react";
 import { Button } from "../ui/Button";
@@ -15,27 +15,15 @@ import { EditDeliveryModal } from "./modals/EditDeliveryModal";
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
 // @ts-expect-error - JSX modules
 import { EnterCostModal } from "./modals/EnterCostModal";
+import deliveriesApi, {
+  type DeliveryUi,
+  type TypeDto,
+} from "./api/deliveriesApi";
+import { useSupplierStore } from "../../stores/supplierStore";
 
-interface FishType {
-  type: string;
-  weight: number;
-  pricePerKg: number;
-}
+// FishType interface now modeled in deliveriesApi.FishTypeUi
 
-interface Delivery {
-  id: number;
-  supplierName: string;
-  driverName: string;
-  deliveryDate: string;
-  deliveryTime: string;
-  lastEditTime: string | null;
-  totalWeight: number;
-  paymentStatus: "paid" | "unpaid" | "partial";
-  totalCost: number;
-  amountPaid: number;
-  remainingAmount: number;
-  fishTypes: FishType[];
-}
+type Delivery = DeliveryUi;
 
 interface DateRange {
   from: string;
@@ -49,56 +37,7 @@ interface Analytics {
   uniqueSuppliers: number;
 }
 
-const initialDeliveriesData: Delivery[] = [
-  {
-    id: 1,
-    supplierName: "مزرعة النيل للأسماك",
-    driverName: "أحمد محمد",
-    deliveryDate: "2024-01-15",
-    deliveryTime: "08:30",
-    lastEditTime: "2024-01-15T10:15:00",
-    totalWeight: 150.5,
-    paymentStatus: "paid",
-    totalCost: 6750,
-    amountPaid: 6750,
-    remainingAmount: 0,
-    fishTypes: [
-      { type: "بلطي", weight: 80, pricePerKg: 45 },
-      { type: "مبروك", weight: 70.5, pricePerKg: 50 },
-    ],
-  },
-  {
-    id: 2,
-    supplierName: "شركة البحر الأحمر",
-    driverName: "محمود علي",
-    deliveryDate: "2024-01-15",
-    deliveryTime: "14:20",
-    lastEditTime: null,
-    totalWeight: 200,
-    paymentStatus: "unpaid",
-    totalCost: 11000,
-    amountPaid: 5000,
-    remainingAmount: 6000,
-    fishTypes: [
-      { type: "دنيس", weight: 120, pricePerKg: 85 },
-      { type: "لوت", weight: 80, pricePerKg: 75 },
-    ],
-  },
-  {
-    id: 3,
-    supplierName: "مزرعة الدلتا",
-    driverName: "عبد الرحمن سعد",
-    deliveryDate: "2024-01-14",
-    deliveryTime: "09:45",
-    lastEditTime: "2024-01-14T16:30:00",
-    totalWeight: 95.5,
-    paymentStatus: "partial",
-    totalCost: 4300,
-    amountPaid: 2000,
-    remainingAmount: 2300,
-    fishTypes: [{ type: "قراميط", weight: 95.5, pricePerKg: 45 }],
-  },
-];
+const initialDeliveriesData: Delivery[] = [];
 
 const DeliveriesPage: React.FC = () => {
   const [deliveriesData, setDeliveriesData] = useState<Delivery[]>(
@@ -111,6 +50,8 @@ const DeliveriesPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(10);
+  const [typeNames, setTypeNames] = useState<string[]>([]);
+  const [types, setTypes] = useState<TypeDto[]>([]);
 
   // Modals state
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -121,15 +62,10 @@ const DeliveriesPage: React.FC = () => {
     null
   );
 
-  // Get unique values for filters
-  const uniqueSuppliers = [
-    ...new Set(deliveriesData.map((d) => d.supplierName)),
-  ];
-  const uniqueFishTypes = [
-    ...new Set(
-      deliveriesData.flatMap((d) => d.fishTypes?.map((f) => f.type) || [])
-    ),
-  ];
+  // Suppliers list from global store for dropdowns (decoupled from existing trucks)
+  const { suppliers: supplierList, fetchSuppliers } = useSupplierStore();
+  const supplierNames = supplierList.map((s) => s.name);
+  // Filter options are sourced from global suppliers and backend types
 
   // Enhanced filtering logic
   const filteredData = useMemo(() => {
@@ -232,16 +168,55 @@ const DeliveriesPage: React.FC = () => {
     setShowEditModal(true);
   };
 
-  const handleAddDelivery = (
+  const handleAddDelivery = async (
     newDelivery: Omit<Delivery, "id" | "lastEditTime">
   ) => {
-    const delivery: Delivery = {
-      ...newDelivery,
-      id: Date.now(),
-      lastEditTime: null,
-    };
-    setDeliveriesData((prev) => [delivery, ...prev]);
-    setShowAddModal(false);
+    // Create truck then items using backend APIs
+    try {
+      const selectedSupplier = supplierList.find(
+        (s) => s.name === newDelivery.supplierName
+      );
+      const truck = await deliveriesApi.createDelivery({
+        supplierId: selectedSupplier?.id,
+        supplierName: newDelivery.supplierName,
+        driverName: newDelivery.driverName,
+        // deliveryDate handled by DB @CreateDateColumn; keep now
+      });
+
+      // Ensure type IDs for each fish type then create items
+      const types = await deliveriesApi.getTypes();
+      const typeMap = new Map(types.map((t) => [t.id, t] as const));
+      // for faster lookup by name too
+      const byName = new Map(types.map((t) => [t.name, t] as const));
+
+      for (const f of newDelivery.fishTypes) {
+        // find or create type
+        let type = byName.get(f.type) || null;
+        if (!type) {
+          // pass baseType as category when creating subtype
+          const baseName = (f as unknown as { baseType?: string }).baseType;
+          type = await deliveriesApi.ensureTypeByName(
+            f.type,
+            typeMap,
+            baseName || undefined
+          );
+          byName.set(type.name, type);
+        }
+        await deliveriesApi.createDeliveryItem({
+          truckId: truck.id,
+          typeId: type.id,
+          amount: f.weight,
+          classification: null,
+        });
+      }
+
+      // Refresh list from backend
+      await fetchDeliveries();
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Failed to add delivery", err);
+      alert("حدث خطأ أثناء إضافة التوصيل. يرجى المحاولة مرة أخرى.");
+    }
   };
 
   const handleUpdateDelivery = (updatedDelivery: Delivery) => {
@@ -256,40 +231,39 @@ const DeliveriesPage: React.FC = () => {
     setSelectedDelivery(null);
   };
 
-  const handleUpdateCost = (
-    deliveryId: number,
+  const handleUpdateCost = async (
+    deliveryId: string,
     costData: { totalCost: number; amountPaid: number }
   ) => {
-    setDeliveriesData((prev) =>
-      prev.map((delivery) =>
-        delivery.id === deliveryId
-          ? {
-              ...delivery,
-              totalCost: costData.totalCost,
-              amountPaid: costData.amountPaid,
-              remainingAmount: costData.totalCost - costData.amountPaid,
-              paymentStatus:
-                costData.amountPaid === 0
-                  ? "unpaid"
-                  : costData.amountPaid >= costData.totalCost
-                  ? "paid"
-                  : "partial",
-              lastEditTime: new Date().toISOString(),
-            }
-          : delivery
-      )
-    );
-    setShowCostModal(false);
-    setSelectedDelivery(null);
+    try {
+      await deliveriesApi.updateDeliveryTotals(
+        deliveryId,
+        costData.totalCost,
+        costData.amountPaid
+      );
+      await fetchDeliveries();
+    } catch (e) {
+      console.error(e);
+      alert("تعذر حفظ التكلفة. الرجاء المحاولة لاحقاً.");
+    } finally {
+      setShowCostModal(false);
+      setSelectedDelivery(null);
+    }
   };
 
-  const handleDelete = (delivery: Delivery) => {
+  const handleDelete = async (delivery: Delivery) => {
     if (
       window.confirm(
         `هل أنت متأكد من حذف توصيل ${delivery.supplierName}؟\nهذا الإجراء لا يمكن التراجع عنه.`
       )
     ) {
-      setDeliveriesData((prev) => prev.filter((d) => d.id !== delivery.id));
+      try {
+        await deliveriesApi.deleteDelivery(delivery.id);
+        await fetchDeliveries();
+      } catch (e) {
+        console.error(e);
+        alert("تعذر حذف التوصيل.");
+      }
     }
   };
 
@@ -300,6 +274,30 @@ const DeliveriesPage: React.FC = () => {
     setDateFilter("all");
     setDateRange({ from: "", to: "" });
   };
+
+  const fetchDeliveries = async () => {
+    const [trucks, items, types] = await Promise.all([
+      deliveriesApi.getDeliveries(),
+      deliveriesApi.getDeliveryItems(),
+      deliveriesApi.getTypes(),
+    ]);
+    const assembled = deliveriesApi.assembleDeliveries(trucks, items, types);
+    setDeliveriesData(assembled);
+    setTypeNames(types.map((t) => t.name));
+    setTypes(types);
+  };
+
+  useEffect(() => {
+    // initial data load: suppliers for modal, and current deliveries list
+    const init = async () => {
+      try {
+        await Promise.all([fetchSuppliers(), fetchDeliveries()]);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    void init();
+  }, [fetchSuppliers]);
 
   const exportDeliveriesData = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -564,7 +562,7 @@ const DeliveriesPage: React.FC = () => {
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">جميع الموردين</option>
-              {uniqueSuppliers.map((supplier) => (
+              {supplierNames.map((supplier) => (
                 <option key={supplier} value={supplier}>
                   {supplier}
                 </option>
@@ -578,7 +576,7 @@ const DeliveriesPage: React.FC = () => {
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">جميع أنواع الأسماك</option>
-              {uniqueFishTypes.map((fishType) => (
+              {typeNames.map((fishType) => (
                 <option key={fishType} value={fishType}>
                   {fishType}
                 </option>
@@ -784,7 +782,8 @@ const DeliveriesPage: React.FC = () => {
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onSave={handleAddDelivery}
-          suppliers={uniqueSuppliers}
+          suppliers={supplierNames}
+          types={types}
         />
 
         <EditDeliveryModal
@@ -792,7 +791,8 @@ const DeliveriesPage: React.FC = () => {
           onClose={() => setShowEditModal(false)}
           onSave={handleUpdateDelivery}
           delivery={selectedDelivery}
-          suppliers={uniqueSuppliers}
+          suppliers={supplierNames}
+          types={types}
         />
 
         <DeliveryDetailsModal

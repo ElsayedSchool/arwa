@@ -33,7 +33,7 @@ const normalizeEmployee = (raw: RawUser): Employee => {
 export const employeeApi = {
   async getAll(): Promise<Employee[]> {
     try {
-      const res = await api.get("/user/all");
+      const res = await api.get("/employee/all");
       const payload: unknown = res.data;
       const getArray = (obj: unknown, key: string): unknown[] | null => {
         if (obj && typeof obj === "object") {
@@ -65,7 +65,7 @@ export const employeeApi = {
 
   async create(data: CreateEmployeeData): Promise<boolean> {
     try {
-      const res = await api.post("/user", {
+      const res = await api.post("/employee", {
         username: data.username,
         password: data.password,
         confirmPassword: data.confirmPassword,
@@ -93,7 +93,7 @@ export const employeeApi = {
 
   async update(data: UpdateEmployeeData): Promise<boolean> {
     try {
-      const res = await api.post("/user", {
+      const res = await api.post("/employee", {
         id: data.id,
         username: data.username,
         password: data.password,
@@ -122,7 +122,7 @@ export const employeeApi = {
 
   async deactivate(id: string, isActive: boolean): Promise<boolean> {
     try {
-      const res = await api.post("/user/deactive", { id, isActive });
+      const res = await api.post("/employee/deactive", { id, isActive });
       return Boolean(res.data);
     } catch (err: unknown) {
       const e = err as {
@@ -137,7 +137,7 @@ export const employeeApi = {
 
   async remove(id: string): Promise<boolean> {
     try {
-      const res = await api.put("/user/remove", { id });
+      const res = await api.put("/employee/remove", { id });
       return Boolean(res.data);
     } catch (err: unknown) {
       const e = err as {
@@ -151,7 +151,7 @@ export const employeeApi = {
 
   async resetPassword(id: string, newPassword: string): Promise<boolean> {
     try {
-      const res = await api.put("/user/changepassword", {
+      const res = await api.put("/employee/changepassword", {
         id,
         newPassword,
         passwordConfirm: newPassword,

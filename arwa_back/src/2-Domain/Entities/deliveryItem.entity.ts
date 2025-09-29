@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
-import { Delivery } from "./truck.entity";
+import { Delivery } from "./delivery.entity";
 import { Category } from "./category.entity";
 
 @Entity()
@@ -16,14 +16,14 @@ export class DeliveryItem extends BaseDelete {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ name: "truckId", nullable: true })
+  @Column({ name: "deliveryId", nullable: true })
   deliveryId: string | null;
 
   @ManyToOne(() => Delivery, (delivery) => delivery.deliveryItems, {
     onDelete: "SET NULL",
     nullable: true,
   })
-  @JoinColumn({ name: "truckId" })
+  @JoinColumn({ name: "deliveryId" })
   delivery: Delivery | null;
 
   @Column({ nullable: true })

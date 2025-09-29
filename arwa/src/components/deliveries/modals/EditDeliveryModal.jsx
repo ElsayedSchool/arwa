@@ -10,13 +10,14 @@ export const EditDeliveryModal = ({
   onSave,
   delivery,
   suppliers,
+  types = [],
 }) => {
   const [formData, setFormData] = useState({
     supplierName: "",
     driverName: "",
     deliveryDate: "",
     deliveryTime: "",
-    fishTypes: [{ type: "", weight: "", pricePerKg: "" }],
+    fishTypes: [{ baseType: "", type: "", weight: "", pricePerKg: "" }],
   });
   const [errors, setErrors] = useState({});
 
@@ -27,11 +28,16 @@ export const EditDeliveryModal = ({
         driverName: delivery.driverName,
         deliveryDate: delivery.deliveryDate,
         deliveryTime: delivery.deliveryTime,
-        fishTypes: delivery.fishTypes.map((fish) => ({
-          type: fish.type,
-          weight: fish.weight.toString(),
-          pricePerKg: fish.pricePerKg.toString(),
-        })),
+        fishTypes: delivery.fishTypes.map((fish) => {
+          const sub = types.find((t) => !t.isBase && t.name === fish.type);
+          const baseName = sub?.category || "";
+          return {
+            baseType: baseName,
+            type: fish.type,
+            weight: fish.weight.toString(),
+            pricePerKg: fish.pricePerKg.toString(),
+          };
+        }),
       });
     }
   }, [delivery]);
@@ -52,7 +58,10 @@ export const EditDeliveryModal = ({
   const addFishType = () => {
     setFormData((prev) => ({
       ...prev,
-      fishTypes: [...prev.fishTypes, { type: "", weight: "", pricePerKg: "" }],
+      fishTypes: [
+        ...prev.fishTypes,
+        { baseType: "", type: "", weight: "", pricePerKg: "" },
+      ],
     }));
   };
 
@@ -121,6 +130,8 @@ export const EditDeliveryModal = ({
           ...fish,
           weight: parseFloat(fish.weight),
           pricePerKg: parseFloat(fish.pricePerKg),
+          // ensure type is subtype name
+          type: fish.type,
         })),
       };
 
@@ -230,15 +241,59 @@ export const EditDeliveryModal = ({
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Input
-                    placeholder="نوع السمك"
-                    value={fish.type}
-                    onChange={(e) =>
-                      handleFishTypeChange(index, "type", e.target.value)
-                    }
-                    error={errors[`fishType_${index}`]}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      النوع الأساسي
+                    </label>
+                    <select
+                      value={fish.baseType || ""}
+                      onChange={(e) => {
+                        handleFishTypeChange(index, "baseType", e.target.value);
+                        handleFishTypeChange(index, "type", "");
+                      }}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">اختر النوع الأساسي</option>
+                      {types
+                        .filter((t) => t.isBase)
+                        .map((t) => (
+                          <option key={t.id} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      النوع الفرعي
+                    </label>
+                    <select
+                      value={fish.type || ""}
+                      onChange={(e) =>
+                        handleFishTypeChange(index, "type", e.target.value)
+                      }
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">اختر النوع الفرعي</option>
+                      {types
+                        .filter(
+                          (t) =>
+                            !t.isBase &&
+                            (t.category || "") === (fish.baseType || "")
+                        )
+                        .map((t) => (
+                          <option key={t.id} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
+                    </select>
+                    {errors[`fishType_${index}`] && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors[`fishType_${index}`]}
+                      </p>
+                    )}
+                  </div>
                   <Input
                     placeholder="الوزن (كجم)"
                     type="number"
