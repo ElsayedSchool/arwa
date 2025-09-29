@@ -83,9 +83,24 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
     field: keyof FishTypeEdit,
     value: string
   ) => {
-    const newFishTypes = [...formData.fishTypes];
-    newFishTypes[index] = { ...newFishTypes[index], [field]: value };
-    setFormData((prev) => ({ ...prev, fishTypes: newFishTypes }));
+    setFormData((prev) => {
+      const newFishTypes = [...prev.fishTypes];
+      newFishTypes[index] = { ...newFishTypes[index], [field]: value };
+      return { ...prev, fishTypes: newFishTypes };
+    });
+
+    // Clear error for this field if it exists
+    const errorKey =
+      field === "baseType"
+        ? `baseType_${index}`
+        : field === "type"
+        ? `fishType_${index}`
+        : field === "weight"
+        ? `weight_${index}`
+        : `price_${index}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: "" }));
+    }
   };
 
   const addFishType = () => {
@@ -127,8 +142,11 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
     }
 
     formData.fishTypes.forEach((fish, index) => {
+      if (!fish.baseType.trim()) {
+        newErrors[`baseType_${index}`] = "النوع الأساسي مطلوب";
+      }
       if (!fish.type.trim()) {
-        newErrors[`fishType_${index}`] = "نوع السمك مطلوب";
+        newErrors[`fishType_${index}`] = "النوع الفرعي مطلوب";
       }
       if (!fish.weight || parseFloat(fish.weight) <= 0) {
         newErrors[`weight_${index}`] = "الوزن مطلوب ويجب أن يكون أكبر من صفر";
@@ -161,10 +179,9 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
         totalWeight,
         totalCost,
         fishTypes: formData.fishTypes.map((fish) => ({
-          ...fish,
           weight: parseFloat(fish.weight),
           pricePerKg: parseFloat(fish.pricePerKg),
-          // ensure type is subtype name
+          // Only record the subtype, not baseType
           type: fish.type,
         })),
       };
@@ -283,7 +300,8 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
                     <select
                       value={fish.baseType || ""}
                       onChange={(e) => {
-                        handleFishTypeChange(index, "baseType", e.target.value);
+                        const value = e.target.value;
+                        handleFishTypeChange(index, "baseType", value);
                         handleFishTypeChange(index, "type", "");
                       }}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -297,6 +315,11 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
                           </option>
                         ))}
                     </select>
+                    {errors[`baseType_${index}`] && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors[`baseType_${index}`]}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
@@ -307,20 +330,28 @@ export const EditDeliveryModal: React.FC<EditDeliveryModalProps> = ({
                       onChange={(e) =>
                         handleFishTypeChange(index, "type", e.target.value)
                       }
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={!fish.baseType}
+                      className={`block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        !fish.baseType ? "bg-gray-100 cursor-not-allowed" : ""
+                      }`}
                     >
-                      <option value="">اختر النوع الفرعي</option>
-                      {types
-                        .filter(
-                          (t) =>
-                            !t.isBase &&
-                            (t.category || "") === (fish.baseType || "")
-                        )
-                        .map((t) => (
-                          <option key={t.id} value={t.name}>
-                            {t.name}
-                          </option>
-                        ))}
+                      <option value="">
+                        {fish.baseType
+                          ? "اختر النوع الفرعي"
+                          : "اختر النوع الأساسي أولاً"}
+                      </option>
+                      {fish.baseType &&
+                        types
+                          .filter(
+                            (t) =>
+                              !t.isBase &&
+                              (t.category || "") === (fish.baseType || "")
+                          )
+                          .map((t) => (
+                            <option key={t.id} value={t.name}>
+                              {t.name}
+                            </option>
+                          ))}
                     </select>
                     {errors[`fishType_${index}`] && (
                       <p className="text-sm text-red-600 mt-1">

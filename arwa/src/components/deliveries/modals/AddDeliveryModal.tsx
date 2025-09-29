@@ -57,9 +57,22 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
     field: keyof FishTypeForm,
     value: string
   ) => {
-    const newFishTypes = [...formData.fishTypes];
-    newFishTypes[index] = { ...newFishTypes[index], [field]: value };
-    setFormData((prev) => ({ ...prev, fishTypes: newFishTypes }));
+    setFormData((prev) => {
+      const newFishTypes = [...prev.fishTypes];
+      newFishTypes[index] = { ...newFishTypes[index], [field]: value };
+      return { ...prev, fishTypes: newFishTypes };
+    });
+
+    // Clear error for this field if it exists
+    const errorKey =
+      field === "baseType"
+        ? `baseType_${index}`
+        : field === "type"
+        ? `fishType_${index}`
+        : `quantity_${index}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: "" }));
+    }
   };
 
   const addFishType = () => {
@@ -87,32 +100,11 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
   const isBaseType = (t: CategoryDto): boolean =>
     isTruthy(t?.isBase) ||
     isTruthy((t as unknown as Record<string, unknown>)?.is_base);
-  const getTypeCategory = (t: CategoryDto): string => {
-    const v =
-      (t as unknown as Record<string, unknown>)?.category ??
-      (t as unknown as Record<string, unknown>)?.parent ??
-      null;
-    if (v && typeof v === "object") {
-      const obj = v as Record<string, unknown>;
-      return String(
-        obj.name ?? obj.categoryName ?? obj.title ?? obj.label ?? obj.id ?? ""
-      );
-    }
-    return String(v ?? "");
-  };
   const bases = types.filter((t) => isBaseType(t));
-  const subs = types.filter((t) => !isBaseType(t));
-  console.log(subs);
-  const normalize = (v: unknown): string =>
-    v == null ? "" : String(v).trim().toLowerCase();
   const getSubtypesForBase = (baseName: string): CategoryDto[] => {
-    // Debug: log what's being filtered.
-    console.log(`Filtering subtypes for base: '${baseName}'`);
-    const filtered = subs.filter(
-      (s) => normalize(getTypeCategory(s)) === normalize(baseName)
+    return types.filter(
+      (t) => !isBaseType(t) && (t.category || "") === baseName
     );
-    console.log(`Found ${filtered.length} subtypes:`, filtered);
-    return filtered;
   };
 
   const validateForm = () => {
@@ -135,8 +127,11 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
     }
 
     formData.fishTypes.forEach((fish, index) => {
+      if (!fish.baseType.trim()) {
+        newErrors[`baseType_${index}`] = "النوع الأساسي مطلوب";
+      }
       if (!fish.type.trim()) {
-        newErrors[`fishType_${index}`] = "نوع السمك مطلوب";
+        newErrors[`fishType_${index}`] = "النوع الفرعي مطلوب";
       }
       const qty = parseFloat(fish.quantity || "0");
       if (!qty || qty <= 0) {
@@ -172,7 +167,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
           const unit = fish.unit || "kg";
           const weightKg = unit === "box" ? qty * 25 : qty;
           return {
-            ...fish,
+            type: fish.type, // Only record the subtype, not baseType
             quantity: qty,
             unit,
             weight: weightKg,
@@ -299,7 +294,8 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
                     <select
                       value={fish.baseType || ""}
                       onChange={(e) => {
-                        handleFishTypeChange(index, "baseType", e.target.value);
+                        const value = e.target.value;
+                        handleFishTypeChange(index, "baseType", value);
                         // reset subtype when base changes
                         handleFishTypeChange(index, "type", "");
                       }}
@@ -316,6 +312,11 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
                         ))
                       )}
                     </select>
+                    {errors[`baseType_${index}`] && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors[`baseType_${index}`]}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
@@ -326,12 +327,16 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
                       onChange={(e) =>
                         handleFishTypeChange(index, "type", e.target.value)
                       }
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={!fish.baseType}
+                      className={`block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        !fish.baseType ? "bg-gray-100 cursor-not-allowed" : ""
+                      }`}
                     >
-                      <option value="">اختر النوع الفرعي</option>
-                      {(!fish.baseType || fish.baseType === "") && (
-                        <option value="">اختر النوع الأساسي أولاً</option>
-                      )}
+                      <option value="">
+                        {fish.baseType
+                          ? "اختر النوع الفرعي"
+                          : "اختر النوع الأساسي أولاً"}
+                      </option>
                       {fish.baseType &&
                         (getSubtypesForBase(fish.baseType).length === 0 ? (
                           <option value="">لا توجد أنواع فرعية</option>

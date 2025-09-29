@@ -86,7 +86,7 @@ const DeliveriesPage: React.FC = () => {
       // Fish type filter
       if (selectedBaseType || selectedSubtype) {
         const hasMatchingType = delivery.fishTypes?.some((fish) => {
-          const fishType = types.find(t => t.name === fish.type);
+          const fishType = types.find((t) => t.name === fish.type);
           if (!fishType) return false;
 
           if (selectedSubtype) {
@@ -94,7 +94,10 @@ const DeliveriesPage: React.FC = () => {
             return fish.type === selectedSubtype;
           } else if (selectedBaseType) {
             // If base type is selected, match base type or any of its subtypes
-            return fishType.category === selectedBaseType || fishType.name === selectedBaseType;
+            return (
+              fishType.category === selectedBaseType ||
+              fishType.name === selectedBaseType
+            );
           }
           return false;
         });
@@ -333,7 +336,13 @@ const DeliveriesPage: React.FC = () => {
     setBaseTypeNames(bases.map((t) => t.name));
     setSubtypeNames([]);
     setTypes(types);
-  }, [selectedSupplier, selectedBaseType, selectedSubtype, dateFilter, dateRange]);
+  }, [
+    selectedSupplier,
+    selectedBaseType,
+    selectedSubtype,
+    dateFilter,
+    dateRange,
+  ]);
 
   useEffect(() => {
     // initial data load: suppliers for modal, and current deliveries list
@@ -350,8 +359,11 @@ const DeliveriesPage: React.FC = () => {
   // Update subtype names when base type changes
   useEffect(() => {
     if (selectedBaseType && types.length > 0) {
-      const subtypes = deliveriesApi.getSubtypesForBase(types, selectedBaseType);
-      setSubtypeNames(subtypes.map(t => t.name));
+      const subtypes = deliveriesApi.getSubtypesForBase(
+        types,
+        selectedBaseType
+      );
+      setSubtypeNames(subtypes.map((t) => t.name));
       // Clear subtype selection when base type changes
       setSelectedSubtype("");
     } else {
