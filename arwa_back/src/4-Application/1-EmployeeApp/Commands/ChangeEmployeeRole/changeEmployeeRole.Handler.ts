@@ -9,6 +9,7 @@ export class ChangeEmployeeRoleHandler {
     const user = await this.userRepo.findByIdAsync(command.id);
     user.isAdmin = command.isAdmin;
     user.roles = command.roles;
-    return await this.userRepo.saveAsync(user);
+    await this.userRepo.saveAsync(user);
+    return true;
   }
 }

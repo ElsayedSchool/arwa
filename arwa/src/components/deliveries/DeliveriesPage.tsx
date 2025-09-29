@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import ExcelJS from "exceljs";
 import { Plus, Truck } from "lucide-react";
 import { Button } from "../ui/Button";
@@ -7,7 +7,6 @@ import { DeliveriesTable } from "./components/DeliveriesTable";
 import { DeliveriesFilters } from "./components/DeliveriesFilters";
 import { DeliveriesAnalytics } from "./components/DeliveriesAnalytics";
 import { AddDeliveryModal } from "./modals/AddDeliveryModal";
-import { EditDeliveryModal } from "./modals/EditDeliveryModal";
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
 import { EnterCostModal } from "./modals/EnterCostModal";
 import deliveriesApi, {
@@ -83,30 +82,6 @@ const DeliveriesPage: React.FC = () => {
         return false;
       }
 
-      // Fish type filter
-      if (selectedBaseType || selectedSubtype) {
-        const hasMatchingType = delivery.fishTypes?.some((fish) => {
-          const fishType = types.find((t) => t.name === fish.type);
-          if (!fishType) return false;
-
-          if (selectedSubtype) {
-            // If subtype is selected, match exactly
-            return fish.type === selectedSubtype;
-          } else if (selectedBaseType) {
-            // If base type is selected, match base type or any of its subtypes
-            return (
-              fishType.category === selectedBaseType ||
-              fishType.name === selectedBaseType
-            );
-          }
-          return false;
-        });
-
-        if (!hasMatchingType) {
-          return false;
-        }
-      }
-
       // Date filter
       const deliveryDate = new Date(delivery.deliveryDate);
       const today = new Date();
@@ -129,27 +104,18 @@ const DeliveriesPage: React.FC = () => {
 
       return true;
     });
-  }, [
-    deliveriesData,
-    searchTerm,
-    selectedSupplier,
-    selectedBaseType,
-    selectedSubtype,
-    dateFilter,
-    dateRange,
-    types,
-  ]);
+  }, [deliveriesData, searchTerm, selectedSupplier, dateFilter, dateRange]);
 
   // Calculate analytics based on filtered data
   const analytics: Analytics = useMemo(() => {
     const totalReceivedFish = filteredData.reduce(
-      (sum, delivery) => sum + (delivery.totalWeight || 0),
+      (sum, delivery) => sum + Number(delivery.totalWeight || 0),
       0
     );
 
     const fishTypeBreakdown = filteredData.reduce((acc, delivery) => {
       delivery.fishTypes?.forEach((fish) => {
-        acc[fish.type] = (acc[fish.type] || 0) + fish.weight;
+        acc[fish.type] = (acc[fish.type] || 0) + Number(fish.weight);
       });
       return acc;
     }, {} as Record<string, number>);
@@ -186,47 +152,26 @@ const DeliveriesPage: React.FC = () => {
   const handleAddDelivery = async (
     newDelivery: Omit<Delivery, "id" | "lastEditTime">
   ) => {
-    // Create truck then items using backend APIs
+    // Create delivery with all data using backend API
     try {
       const selectedSupplier = supplierList.find(
         (s) => s.name === newDelivery.supplierName
       );
-      const truck = await deliveriesApi.createDelivery({
+      await deliveriesApi.createDelivery({
         supplierId: selectedSupplier?.id,
         supplierName: newDelivery.supplierName,
         driverName: newDelivery.driverName,
-        // deliveryDate handled by DB @CreateDateColumn; keep now
+        deliveryDate: newDelivery.deliveryDate,
+        deliveryTime: newDelivery.deliveryTime,
+        totalCost: newDelivery.totalCost,
+        amountPaid: newDelivery.amountPaid,
+        remainingAmount: newDelivery.remainingAmount,
+        paymentStatus: newDelivery.paymentStatus,
+        fishTypes: newDelivery.fishTypes,
       });
 
-      // Ensure type IDs for each fish type then create items
-      const types = await deliveriesApi.getTypes();
-      const typeMap = new Map(types.map((t) => [t.id, t] as const));
-      // for faster lookup by name too
-      const byName = new Map(types.map((t) => [t.name, t] as const));
-
-      for (const f of newDelivery.fishTypes) {
-        // find or create type
-        let type = byName.get(f.type) || null;
-        if (!type) {
-          // pass baseType as category when creating subtype
-          const baseName = (f as unknown as { baseType?: string }).baseType;
-          type = await deliveriesApi.ensureTypeByName(
-            f.type,
-            typeMap,
-            baseName || undefined
-          );
-          byName.set(type.name, type);
-        }
-        await deliveriesApi.createDeliveryItem({
-          truckId: truck.id,
-          typeId: type.id,
-          amount: f.weight,
-          classification: null,
-        });
-      }
-
-      // Refresh list from backend
-      await fetchDeliveries();
+      // Refresh list from backend (ignore filters to ensure new delivery is shown)
+      await fetchDeliveries(true);
       setShowAddModal(false);
     } catch (err) {
       console.error("Failed to add delivery", err);
@@ -308,41 +253,38 @@ const DeliveriesPage: React.FC = () => {
     setDateRange({ from: "", to: "" });
   };
 
-  const fetchDeliveries = useCallback(async () => {
-    const filters: Record<string, string> = {};
-    if (selectedSupplier) filters.supplierName = selectedSupplier;
-    if (selectedBaseType) filters.baseType = selectedBaseType;
-    if (selectedSubtype) filters.fishType = selectedSubtype;
-    if (dateFilter && dateFilter !== "all") {
-      filters.dateFilter = dateFilter;
-      if (dateFilter === "range") {
-        if (dateRange.from) filters.from = dateRange.from;
-        if (dateRange.to) filters.to = dateRange.to;
+  const fetchDeliveries = useCallback(
+    async (ignoreFilters = false) => {
+      const filters: Record<string, string> = {};
+      if (!ignoreFilters) {
+        if (selectedSupplier) filters.supplierName = selectedSupplier;
+        if (selectedBaseType) filters.baseType = selectedBaseType;
+        if (selectedSubtype) filters.fishType = selectedSubtype;
+        if (dateFilter && dateFilter !== "all") {
+          filters.dateFilter = dateFilter;
+          if (dateFilter === "range") {
+            if (dateRange.from) filters.from = dateRange.from;
+            if (dateRange.to) filters.to = dateRange.to;
+          }
+        }
       }
-    }
 
-    const [trucks, items, types] = await Promise.all([
-      deliveriesApi.getDeliveries(filters),
-      deliveriesApi.getDeliveryItems(),
-      deliveriesApi.getTypes(),
-    ]);
-    // Debug: log types returned from API to verify shape and presence (temporary)
-    console.debug("deliveries.fetchDeliveries: types=", types);
-    const assembled = deliveriesApi.assembleDeliveries(trucks, items, types);
-    setDeliveriesData(assembled);
+      const [deliveries, types] = await Promise.all([
+        deliveriesApi.getDeliveries(filters),
+        deliveriesApi.getTypes(),
+      ]);
+      // Debug: log types returned from API to verify shape and presence (temporary)
+      console.debug("deliveries.fetchDeliveries: types=", types);
+      setDeliveriesData(deliveries);
 
-    // Split types into base and subtypes
-    const { bases } = deliveriesApi.splitBaseAndSubtypes(types);
-    setBaseTypeNames(bases.map((t) => t.name));
-    setSubtypeNames([]);
-    setTypes(types);
-  }, [
-    selectedSupplier,
-    selectedBaseType,
-    selectedSubtype,
-    dateFilter,
-    dateRange,
-  ]);
+      // Split types into base and subtypes
+      const { bases } = deliveriesApi.splitBaseAndSubtypes(types);
+      setBaseTypeNames(bases.map((t) => t.name));
+      setSubtypeNames([]);
+      setTypes(types);
+    },
+    [selectedSupplier, selectedBaseType, selectedSubtype, dateFilter, dateRange]
+  );
 
   useEffect(() => {
     // initial data load: suppliers for modal, and current deliveries list
@@ -356,6 +298,8 @@ const DeliveriesPage: React.FC = () => {
     void init();
   }, [fetchSuppliers, fetchDeliveries]);
 
+  const prevSelectedBaseTypeRef = useRef<string>("");
+
   // Update subtype names when base type changes
   useEffect(() => {
     if (selectedBaseType && types.length > 0) {
@@ -364,11 +308,15 @@ const DeliveriesPage: React.FC = () => {
         selectedBaseType
       );
       setSubtypeNames(subtypes.map((t) => t.name));
-      // Clear subtype selection when base type changes
-      setSelectedSubtype("");
+      // Clear subtype selection only when base type actually changes
+      if (prevSelectedBaseTypeRef.current !== selectedBaseType) {
+        setSelectedSubtype("");
+      }
+      prevSelectedBaseTypeRef.current = selectedBaseType;
     } else {
       setSubtypeNames([]);
       setSelectedSubtype("");
+      prevSelectedBaseTypeRef.current = "";
     }
   }, [selectedBaseType, types]);
 
@@ -669,13 +617,14 @@ const DeliveriesPage: React.FC = () => {
           types={types}
         />
 
-        <EditDeliveryModal
+        <AddDeliveryModal
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
-          onSave={handleUpdateDelivery}
-          delivery={selectedDelivery}
+          onSaveEdit={handleUpdateDelivery}
           suppliers={supplierNames}
           types={types}
+          isEdit={true}
+          existingDelivery={selectedDelivery}
         />
 
         <DeliveryDetailsModal

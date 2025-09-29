@@ -23,17 +23,23 @@ interface FormData {
 interface AddDeliveryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Omit<DeliveryUi, "id" | "lastEditTime">) => Promise<void>;
+  onSave?: (data: Omit<DeliveryUi, "id" | "lastEditTime">) => Promise<void>;
+  onSaveEdit?: (data: DeliveryUi) => void;
   suppliers: string[];
   types: CategoryDto[];
+  isEdit?: boolean;
+  existingDelivery?: DeliveryUi | null;
 }
 
 export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onSaveEdit,
   suppliers,
   types = [],
+  isEdit = false,
+  existingDelivery = null,
 }) => {
   const [formData, setFormData] = useState<FormData>({
     supplierName: "",
@@ -44,6 +50,57 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
     fishTypes: [{ baseType: "", type: "", quantity: "", unit: "box" }],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Initialize form data when modal opens or when existingDelivery changes
+  React.useEffect(() => {
+    if (isOpen) {
+      if (isEdit && existingDelivery) {
+        // Populate form with existing delivery data
+        const fishTypes: FishTypeForm[] = existingDelivery.fishTypes.map(
+          (fish) => ({
+            baseType: "", // We'll need to determine this from the type
+            type: fish.type,
+            quantity: fish.weight?.toString() || "",
+            unit: "kg", // Assume kg for editing
+          })
+        );
+
+        // Try to find base types for existing fish types
+        fishTypes.forEach((fish) => {
+          const matchingType = types.find((t) => t.name === fish.type);
+          if (matchingType && matchingType.category) {
+            const baseType = types.find(
+              (t) => t.name === matchingType.category
+            );
+            if (baseType) {
+              fish.baseType = baseType.name;
+            }
+          }
+        });
+
+        setFormData({
+          supplierName: existingDelivery.supplierName,
+          driverName: existingDelivery.driverName,
+          deliveryDate: existingDelivery.deliveryDate,
+          deliveryTime: existingDelivery.deliveryTime,
+          fishTypes:
+            fishTypes.length > 0
+              ? fishTypes
+              : [{ baseType: "", type: "", quantity: "", unit: "box" }],
+        });
+      } else {
+        // Reset to default for add mode
+        setFormData({
+          supplierName: "",
+          driverName: "",
+          deliveryDate: new Date().toISOString().split("T")[0],
+          deliveryTime: new Date().toTimeString().slice(0, 5),
+          fishTypes: [{ baseType: "", type: "", quantity: "", unit: "box" }],
+        });
+      }
+      setErrors({});
+    }
+  }, [isOpen, isEdit, existingDelivery, types]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -171,13 +228,30 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
             quantity: qty,
             unit,
             weight: weightKg,
+            pricePerKg: 0, // Default price
           };
         }),
       };
 
-      onSave(
-        deliveryData as unknown as Omit<DeliveryUi, "id" | "lastEditTime">
-      );
+      if (isEdit && onSaveEdit && existingDelivery) {
+        // For edit, include the id and call onSaveEdit
+        const editData: DeliveryUi = {
+          ...existingDelivery,
+          ...deliveryData,
+          id: existingDelivery.id,
+          lastEditTime: new Date().toISOString(),
+          paymentStatus: deliveryData.paymentStatus as
+            | "paid"
+            | "unpaid"
+            | "partial",
+        };
+        onSaveEdit(editData);
+      } else if (onSave) {
+        // For add, call onSave
+        onSave(
+          deliveryData as unknown as Omit<DeliveryUi, "id" | "lastEditTime">
+        );
+      }
       handleClose();
     }
   };
@@ -198,7 +272,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="إضافة توصيل جديد"
+      title={isEdit ? "تعديل التوصيل" : "إضافة توصيل جديد"}
       size="lg"
     >
       <div className="space-y-6">
@@ -240,6 +314,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
             value={formData.deliveryDate}
             onChange={(e) => handleInputChange("deliveryDate", e.target.value)}
             error={errors.deliveryDate}
+            disabled={isEdit}
           />
 
           <Input
@@ -248,6 +323,7 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
             value={formData.deliveryTime}
             onChange={(e) => handleInputChange("deliveryTime", e.target.value)}
             error={errors.deliveryTime}
+            disabled={isEdit}
           />
         </div>
 
@@ -402,7 +478,9 @@ export const AddDeliveryModal: React.FC<AddDeliveryModalProps> = ({
           <Button variant="outline" onClick={handleClose}>
             إلغاء
           </Button>
-          <Button onClick={handleSubmit}>إضافة التوصيل</Button>
+          <Button onClick={handleSubmit}>
+            {isEdit ? "تحديث التوصيل" : "إضافة التوصيل"}
+          </Button>
         </div>
       </div>
     </Modal>

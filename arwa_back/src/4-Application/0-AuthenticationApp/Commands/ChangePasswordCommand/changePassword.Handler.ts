@@ -23,6 +23,7 @@ export class ChangePasswordHandler {
     );
     user.password = hashedPassword;
     // return response
-    return await this.userrepo.saveAsync(user);
+    await this.userrepo.saveAsync(user);
+    return true;
   }
 }

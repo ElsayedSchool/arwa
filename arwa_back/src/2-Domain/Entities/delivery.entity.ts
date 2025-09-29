@@ -44,7 +44,7 @@ export class Delivery extends BaseDelete {
   @Column({ length: 100, nullable: true })
   driverName: string;
 
-  @CreateDateColumn()
+  @Column({ type: "timestamp" })
   deliveryDate: Date;
 
   @UpdateDateColumn()

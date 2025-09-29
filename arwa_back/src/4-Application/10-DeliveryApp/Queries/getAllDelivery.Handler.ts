@@ -7,6 +7,7 @@ interface DeliveryFilters {
   from?: string; // ISO date string
   to?: string; // ISO date string
   fishType?: string; // type name
+  baseType?: string; // base type category
 }
 
 @Injectable()
@@ -18,6 +19,7 @@ export class GetAllDeliveryHandler {
     // eager load items and types
     qb.leftJoinAndSelect("d.deliveryItems", "di");
     qb.leftJoinAndSelect("di.type", "type");
+    qb.leftJoin("type.mainCategory", "mainCategory");
 
     // base: only not-deleted
     qb.where("d.isDeleted = :isDeleted", { isDeleted: false });
@@ -32,6 +34,13 @@ export class GetAllDeliveryHandler {
       // filter where any joined type.name matches
       qb.andWhere("type.name ILIKE :fishType", {
         fishType: `%${filters.fishType}%`,
+      });
+    }
+
+    if (filters.baseType) {
+      // filter where any joined type.mainCategory matches
+      qb.andWhere("mainCategory.name ILIKE :baseType", {
+        baseType: `%${filters.baseType}%`,
       });
     }
 
@@ -67,6 +76,39 @@ export class GetAllDeliveryHandler {
     qb.orderBy("d.deliveryDate", "DESC");
 
     const results = await qb.getMany();
-    return results;
+
+    // Transform to DeliveryUi format
+    return results.map((delivery) => ({
+      id: delivery.id,
+      supplierName: delivery.supplierName,
+      driverName: delivery.driverName,
+      deliveryDate: delivery.deliveryDate.toISOString().split("T")[0],
+      deliveryTime: delivery.deliveryDate
+        .toISOString()
+        .split("T")[1]
+        .substring(0, 5),
+      lastEditTime: delivery.lastUpdated?.toISOString() || null,
+      totalWeight:
+        delivery.deliveryItems?.reduce(
+          (sum, item) => sum + Number(item.amount),
+          0
+        ) || 0,
+      paymentStatus:
+        delivery.totalDue === 0
+          ? "paid"
+          : delivery.totalPaid > 0
+            ? "partial"
+            : "unpaid",
+      totalCost: delivery.totalPrice,
+      amountPaid: delivery.totalPaid,
+      remainingAmount: delivery.totalDue,
+      fishTypes:
+        delivery.deliveryItems?.map((item) => ({
+          type: item.type?.name || "",
+          category: item.type?.mainCategory?.name || item.type?.name || "",
+          weight: Number(item.amount),
+          pricePerKg: 0, // Default price, can be updated later
+        })) || [],
+    }));
   }
 }

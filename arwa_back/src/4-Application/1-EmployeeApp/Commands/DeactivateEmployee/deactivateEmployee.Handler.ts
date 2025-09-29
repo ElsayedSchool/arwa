@@ -9,6 +9,7 @@ export class DeactivateEmployeeHandler {
   async handle(command: DeactivateEmployeeCommand): Promise<boolean> {
     const user = await this.userRepo.findByIdAsync(command.id);
     user.isActive = command.isActive;
-    return await this.userRepo.saveAsync(user);
+    await this.userRepo.saveAsync(user);
+    return true;
   }
 }

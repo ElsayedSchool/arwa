@@ -74,6 +74,25 @@ const computePaymentStatus = (total: number, paid: number): PaymentStatus => {
   return "partial";
 };
 
+export interface CreateDeliveryPayload {
+  supplierId?: string;
+  supplierName: string;
+  driverName: string;
+  deliveryDate: string;
+  deliveryTime: string;
+  totalCost: number;
+  amountPaid: number;
+  remainingAmount: number;
+  paymentStatus: PaymentStatus;
+  fishTypes: Array<{
+    type: string;
+    quantity: number;
+    unit: string;
+    weight: number;
+    pricePerKg: number;
+  }>;
+}
+
 export const deliveriesApi = {
   async getSuppliers(): Promise<SupplierDto[]> {
     const { data } = await api.get("/supplier");
@@ -130,7 +149,7 @@ export const deliveriesApi = {
     from?: string;
     to?: string;
     fishType?: string;
-  }): Promise<DeliveryDto[]> {
+  }): Promise<DeliveryUi[]> {
     const { data } = await api.get("/delivery", { params: filters });
     return Array.isArray(data) ? data : data?.items ?? [];
   },
@@ -200,7 +219,7 @@ export const deliveriesApi = {
     return created;
   },
 
-  async createDelivery(payload: Partial<DeliveryDto>): Promise<DeliveryDto> {
+  async createDelivery(payload: CreateDeliveryPayload): Promise<DeliveryDto> {
     const { data } = await api.post("/delivery", payload);
     return data;
   },
