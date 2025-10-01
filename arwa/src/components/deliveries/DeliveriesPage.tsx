@@ -15,6 +15,7 @@ import { DeliveriesAnalytics } from "./components/DeliveriesAnalytics";
 import { AddDeliveryModal } from "./modals/AddDeliveryModal";
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
 import { EnterCostModal } from "./modals/EnterCostModal";
+import { PriceDeliveryModal } from "./modals/PriceDeliveryModal";
 import deliveriesApi, {
   type DeliveryUi,
   type CategoryDto,
@@ -47,19 +48,21 @@ const DeliveriesPage: React.FC = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [selectedBaseType, setSelectedBaseType] = useState<string>("");
   const [selectedSubtype, setSelectedSubtype] = useState<string>("");
-  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("today");
   const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(10);
   const [baseTypeNames, setBaseTypeNames] = useState<string[]>([]);
   const [subtypeNames, setSubtypeNames] = useState<string[]>([]);
   const [types, setTypes] = useState<CategoryDto[]>([]);
+  const [unpricedOnly, setUnpricedOnly] = useState<boolean>(false);
 
   // Modals state
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showCostModal, setShowCostModal] = useState<boolean>(false);
+  const [showPriceModal, setShowPriceModal] = useState<boolean>(false);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
     null
   );
@@ -108,9 +111,25 @@ const DeliveriesPage: React.FC = () => {
         if (dateRange.to && deliveryDate > new Date(dateRange.to)) return false;
       }
 
-      return true;
+      // Unpriced-only logic: show deliveries where any item unpriced (pricePerKg=0) or total is 0
+      const hasUnpricedItem = (delivery.fishTypes || []).some(
+        (f) => Number(f.pricePerKg || 0) === 0
+      );
+      const totalIsZero = Number(delivery.totalCost || 0) === 0;
+      const unpricedMatch = unpricedOnly
+        ? hasUnpricedItem || totalIsZero
+        : true;
+
+      return unpricedMatch;
     });
-  }, [deliveriesData, searchTerm, selectedSupplier, dateFilter, dateRange]);
+  }, [
+    deliveriesData,
+    searchTerm,
+    selectedSupplier,
+    dateFilter,
+    dateRange,
+    unpricedOnly,
+  ]);
 
   // Calculate analytics based on filtered data
   const analytics: Analytics = useMemo(() => {
@@ -153,6 +172,11 @@ const DeliveriesPage: React.FC = () => {
   const handleEdit = (delivery: Delivery) => {
     setSelectedDelivery(delivery);
     setShowEditModal(true);
+  };
+
+  const handlePriceDelivery = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
+    setShowPriceModal(true);
   };
 
   const handleAddDelivery = async (
@@ -566,6 +590,8 @@ const DeliveriesPage: React.FC = () => {
           subtypeNames={subtypeNames}
           onExportData={exportDeliveriesData}
           onClearFilters={clearFilters}
+          unpricedOnly={unpricedOnly}
+          onUnpricedOnlyChange={setUnpricedOnly}
         />
 
         <DeliveriesAnalytics analytics={analytics} />
@@ -574,10 +600,11 @@ const DeliveriesPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm mb-8">
           <DeliveriesTable
             data={paginatedData}
-            userRole="admin"
+            userRole="owner"
             onViewDetails={handleViewDetails}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onPriceDelivery={handlePriceDelivery}
           />
         </div>
 
@@ -647,6 +674,37 @@ const DeliveriesPage: React.FC = () => {
           onClose={() => setShowCostModal(false)}
           onSave={handleUpdateCost}
           delivery={selectedDelivery}
+        />
+
+        <PriceDeliveryModal
+          isOpen={showPriceModal}
+          onClose={() => setShowPriceModal(false)}
+          delivery={selectedDelivery}
+          onSavePrices={async (items, deliveryId) => {
+            try {
+              // Upsert each delivery item price using its id; backend will recalc totals
+              await Promise.all(
+                items.map(async (it) => {
+                  const id = it.id;
+                  if (!id) return; // skip if no id (defensive)
+                  await deliveriesApi.upsertDeliveryItem({
+                    id,
+                    deliveryId,
+                    pricePerKilo: Number(it.pricePerKg) || 0,
+                    totalPrice: Number(it.total) || 0,
+                  });
+                })
+              );
+              // Refresh list ignoring filters to reflect latest pricing
+              await fetchDeliveries(true);
+            } catch (e) {
+              console.error(e);
+              alert("تعذر حفظ التسعير للتوصيل.");
+            } finally {
+              setShowPriceModal(false);
+              setSelectedDelivery(null);
+            }
+          }}
         />
       </div>
     </div>

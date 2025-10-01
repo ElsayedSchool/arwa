@@ -104,10 +104,11 @@ export class GetAllDeliveryHandler {
       remainingAmount: delivery.totalDue,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
+          id: item.id,
           type: item.type?.name || "",
           category: item.type?.mainCategory?.name || item.type?.name || "",
           weight: Number(item.amount),
-          pricePerKg: 0, // Default price, can be updated later
+          pricePerKg: Number((item as any).pricePerKilo ?? 0),
         })) || [],
     }));
   }

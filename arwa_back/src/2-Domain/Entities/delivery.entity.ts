@@ -31,24 +31,11 @@ export class Delivery extends BaseDelete {
   @JoinColumn({ name: "supplierId" })
   supplier: Supplier | null;
 
-  @ManyToOne(() => UserProfile, (profile) => profile.deliveries, {
-    onDelete: "SET NULL",
-    nullable: true,
-  })
-  @JoinColumn({ name: "receivedById" })
-  profile: UserProfile | null;
-
   @Column({ length: 100 })
   supplierName: string;
 
   @Column({ length: 100, nullable: true })
   driverName: string;
-
-  @Column({ type: "timestamp" })
-  deliveryDate: Date;
-
-  @UpdateDateColumn()
-  lastUpdated: Date;
 
   // receiver data
   @Column({ nullable: true })
@@ -57,9 +44,15 @@ export class Delivery extends BaseDelete {
   @Column({ length: 100, nullable: true })
   receivedByName: string;
 
-  // delivery total price data
-  @Column({ default: false })
-  isPriceUpdated: boolean;
+  @ManyToOne(() => UserProfile, (profile) => profile.deliveries, {
+    onDelete: "SET NULL",
+    nullable: true,
+  })
+  @JoinColumn({ name: "receivedById" })
+  profile: UserProfile | null;
+
+  @UpdateDateColumn()
+  lastUpdated: Date;
 
   @Column({ type: "decimal", default: 0 })
   totalPrice: number;
@@ -74,6 +67,6 @@ export class Delivery extends BaseDelete {
   deliveryItems: DeliveryItem[];
   // inherits soft-delete fields from BaseDelete
 
-  @Column({ nullable: true })
-  deletedBy: string | null;
+  @CreateDateColumn()
+  deliveryDate: Date;
 }

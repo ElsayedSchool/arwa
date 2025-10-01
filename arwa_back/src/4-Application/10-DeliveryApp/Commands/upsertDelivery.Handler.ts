@@ -15,18 +15,77 @@ export class UpsertDeliveryHandler {
   async execute(cmd: UpsertDeliveryCommand) {
     const payload = cmd.payload;
 
-    // Transform the payload from frontend format to database format
+    // If request is totals-only update (no date/time), update existing delivery by id
+    if (payload?.id && (!payload.deliveryDate || !payload.deliveryTime)) {
+      const totalsPatch = {
+        id: payload.id,
+        totalPrice: Number(payload.totalPrice ?? payload.totalCost ?? 0) || 0,
+        totalPaid: Number(payload.totalPaid ?? payload.amountPaid ?? 0) || 0,
+        totalDue:
+          Number(payload.totalDue ?? 0) ||
+          Math.max(
+            0,
+            (Number(payload.totalPrice ?? payload.totalCost ?? 0) || 0) -
+              (Number(payload.totalPaid ?? payload.amountPaid ?? 0) || 0)
+          ),
+        isPriceUpdated: payload.isPriceUpdated ?? true,
+      } as any;
+
+      await this.repo.saveAsync(totalsPatch);
+      // Reload delivery with relations for proper response
+      const savedDelivery = await this.repo.findOneActive({
+        where: { id: payload.id },
+        relations: ["deliveryItems", "deliveryItems.type"],
+      });
+
+      if (!savedDelivery) return totalsPatch;
+
+      return {
+        id: savedDelivery.id,
+        supplierName: savedDelivery.supplierName,
+        driverName: savedDelivery.driverName,
+        deliveryDate: savedDelivery.deliveryDate.toISOString().split("T")[0],
+        deliveryTime: savedDelivery.deliveryDate
+          .toISOString()
+          .split("T")[1]
+          .substring(0, 5),
+        lastEditTime: savedDelivery.lastUpdated?.toISOString() || null,
+        totalWeight:
+          savedDelivery.deliveryItems?.reduce(
+            (sum, item) => sum + Number(item.amount),
+            0
+          ) || 0,
+        paymentStatus:
+          savedDelivery.totalDue === 0
+            ? "paid"
+            : savedDelivery.totalPaid > 0
+              ? "partial"
+              : "unpaid",
+        totalCost: savedDelivery.totalPrice,
+        amountPaid: savedDelivery.totalPaid,
+        remainingAmount: savedDelivery.totalDue,
+        fishTypes:
+          savedDelivery.deliveryItems?.map((item) => ({
+            type: item.type?.name || "",
+            weight: Number(item.amount),
+            pricePerKg: 0,
+          })) || [],
+      };
+    }
+
+    // Otherwise, treat as full upsert (create/update with date/time)
     const dateTimeString =
-      payload.deliveryDate +
+      String(payload.deliveryDate || "") +
       "T" +
-      (payload.deliveryTime.length === 5
-        ? payload.deliveryTime + ":00"
-        : payload.deliveryTime);
+      (String(payload.deliveryTime || "").length === 5
+        ? String(payload.deliveryTime || "") + ":00"
+        : String(payload.deliveryTime || ""));
     const deliveryDate = new Date(dateTimeString);
     if (isNaN(deliveryDate.getTime())) {
       throw new Error("Invalid delivery date/time");
     }
     const transformedPayload = {
+      id: payload.id,
       supplierId: payload.supplierId,
       supplierName: payload.supplierName,
       driverName: payload.driverName,
@@ -34,9 +93,9 @@ export class UpsertDeliveryHandler {
       totalPrice: payload.totalCost || 0,
       totalPaid: payload.amountPaid || 0,
       totalDue: payload.remainingAmount || 0,
-    };
+    } as any;
 
-    // Create delivery first
+    // Create/update delivery first
     const delivery = await this.repo.saveAsync(transformedPayload);
 
     // Create delivery items
@@ -49,12 +108,11 @@ export class UpsertDeliveryHandler {
           where: { name: fishType.type, isDeleted: false },
         });
 
-        if (categories.length > 0) {
+        if (categories && categories.length > 0) {
           deliveryItems.push({
             deliveryId: delivery.id,
-            typeId: categories[0].id.toString(),
+            fishTypeId: categories[0].id,
             amount: fishType.weight || fishType.quantity || 0,
-            classification: fishType.unit || "kg",
           });
         }
       }

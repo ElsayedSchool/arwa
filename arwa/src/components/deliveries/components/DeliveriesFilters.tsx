@@ -27,6 +27,8 @@ interface DeliveriesFiltersProps {
   subtypeNames: string[];
   onExportData: () => void;
   onClearFilters: () => void;
+  unpricedOnly: boolean;
+  onUnpricedOnlyChange: (value: boolean) => void;
 }
 
 export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
@@ -47,6 +49,8 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
   subtypeNames,
   onExportData,
   onClearFilters,
+  unpricedOnly,
+  onUnpricedOnlyChange,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
@@ -135,6 +139,16 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
           <option value="month">هذا الشهر</option>
           <option value="range">فترة محددة</option>
         </select>
+
+        {/* Unpriced Only */}
+        <label className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+          <input
+            type="checkbox"
+            checked={unpricedOnly}
+            onChange={(e) => onUnpricedOnlyChange(e.target.checked)}
+          />
+          <span className="text-sm text-gray-700">عرض غير المسعّرة فقط</span>
+        </label>
       </div>
 
       {/* Date Range Inputs */}
@@ -166,7 +180,8 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
         selectedSubtype ||
         dateFilter !== "all" ||
         dateRange.from ||
-        dateRange.to) && (
+        dateRange.to ||
+        unpricedOnly) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {searchTerm && <Badge variant="default">البحث: {searchTerm}</Badge>}
           {selectedSupplier && (
@@ -194,6 +209,7 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
             <Badge variant="default">من: {dateRange.from}</Badge>
           )}
           {dateRange.to && <Badge variant="default">إلى: {dateRange.to}</Badge>}
+          {unpricedOnly && <Badge variant="default">غير المسعّرة فقط</Badge>}
         </div>
       )}
     </div>

@@ -38,6 +38,7 @@ export interface DeliveryItemDto {
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
 export interface FishTypeUi {
+  id?: string;
   type: string; // type name
   quantity: number;
   unit: string;
@@ -159,6 +160,18 @@ export const deliveriesApi = {
   async getDeliveryItems(): Promise<DeliveryItemDto[]> {
     const { data } = await api.get("/delivery-item");
     return Array.isArray(data) ? data : data?.items ?? [];
+  },
+
+  async upsertDeliveryItem(payload: {
+    id?: string;
+    deliveryId: string;
+    typeId?: string | number;
+    amount?: number;
+    pricePerKilo?: number;
+    totalPrice?: number;
+  }) {
+    const { data } = await api.post("/delivery-item", payload);
+    return data;
   },
 
   async ensureTypeByName(

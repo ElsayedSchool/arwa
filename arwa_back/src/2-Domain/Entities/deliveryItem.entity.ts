@@ -20,27 +20,32 @@ export class DeliveryItem extends BaseDelete {
   deliveryId: string | null;
 
   @ManyToOne(() => Delivery, (delivery) => delivery.deliveryItems, {
-    onDelete: "SET NULL",
+    onDelete: "CASCADE",
     nullable: true,
   })
   @JoinColumn({ name: "deliveryId" })
   delivery: Delivery | null;
 
-  @Column({ nullable: true })
-  typeId: string | null;
+  @Column()
+  fishTypeId: number;
 
   @ManyToOne(() => Category, (category) => category.deliveryItems, {
-    onDelete: "SET NULL",
-    nullable: true,
+    onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: "typeId" })
-  type: Category | null;
+  @JoinColumn({ name: "fishTypeId" })
+  type: Category;
+
+  @Column({ default: "" })
+  fishTypeName: string;
 
   @Column({ type: "decimal", default: 0 })
   amount: number;
 
-  @Column({ length: 50, nullable: true })
-  classification: string;
+  @Column({ type: "decimal", default: 0 })
+  pricePerKilo: number;
+
+  @Column({ type: "decimal", default: 0 })
+  totalPrice: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -48,7 +53,4 @@ export class DeliveryItem extends BaseDelete {
   @UpdateDateColumn()
   updatedAt: Date;
   // soft-delete fields are inherited
-
-  @Column({ nullable: true })
-  deletedBy: string | null;
 }
