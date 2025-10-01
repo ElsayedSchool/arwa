@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
 import { Delivery } from "./delivery.entity";
+import { OrderItem } from "./orderItem.entity";
 
 @Entity()
 export class Supplier extends BaseDelete {
@@ -50,8 +51,8 @@ export class Supplier extends BaseDelete {
 
   @OneToMany(() => Delivery, (delivery) => delivery.supplier)
   deliveries: Delivery[];
-  // inherited soft-delete fields
 
-  @Column({ nullable: true })
-  deletedBy: string | null;
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.Supplier)
+  orderItems: OrderItem[];
+  // inherited soft-delete fields
 }

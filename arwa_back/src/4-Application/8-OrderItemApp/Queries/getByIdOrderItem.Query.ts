@@ -1,3 +1,3 @@
-export class GetByIdSoldQuery {
+export class GetByIdOrderItemQuery {
   constructor(public id: string) {}
 }

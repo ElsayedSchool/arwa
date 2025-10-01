@@ -39,6 +39,8 @@ export type PaymentStatus = "paid" | "unpaid" | "partial";
 
 export interface FishTypeUi {
   type: string; // type name
+  quantity: number;
+  unit: string;
   weight: number;
   pricePerKg: number;
 }
@@ -270,6 +272,8 @@ export const deliveriesApi = {
         type: it.typeId
           ? typeById.get(it.typeId)?.name || "غير معروف"
           : "غير معروف",
+        quantity: it.amount || 0,
+        unit: "kg",
         weight: it.amount || 0,
         pricePerKg: 0, // Backend doesn't track per-item price yet
       }));

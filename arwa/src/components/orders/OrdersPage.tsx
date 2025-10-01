@@ -1,555 +1,471 @@
-import React, { useState, useMemo } from "react";
-import {
-  Search,
-  Package,
-  Plus,
-  Edit,
-  MoreVertical,
-  Trash2,
-} from "lucide-react";
-import { Input } from "../ui/Input";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "../ui/Button";
 import { TopNavigation } from "../common/TopNavigation";
+import { OrdersFilters } from "./components/OrdersFilters";
+import { OrdersAnalytics } from "./components/OrdersAnalytics";
+import { OrdersTable } from "./components/OrdersTable";
+import { AddOrderModal } from "./modals/AddOrderModal";
+import { OrderDetailsModal } from "./modals/OrderDetailsModal";
+import { PriceOrderModal } from "./modals/PriceOrderModal";
+import { ordersApi } from "./api/ordersApi";
+import { deliveriesApi } from "../deliveries/api/deliveriesApi";
+import { useSupplierStore } from "../../stores/supplierStore";
+import type {
+  Order,
+  FormData,
+  AnalyticsData,
+  Customer as Client,
+} from "./api/ordersApi";
+import type { CategoryDto } from "../deliveries/api/deliveriesApi";
 
-interface Order {
-  id: number;
-  orderNumber: string;
-  clientName: string;
-  clientPhone?: string;
-  fishType: string;
-  fishAmount: number;
-  supplierName: string;
-  orderDate: string;
-  orderTime?: string;
-  addedTime: string;
+interface DateRange {
+  from: string;
+  to: string;
 }
 
-interface Client {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-}
-
-interface FishItem {
-  fishType: string;
-  quantity: string;
-  supplier: string;
-}
-
-interface FormData {
-  clientId: string;
-  clientName: string;
-  clientPhone: string;
-  clientEmail: string;
-  fishItems: FishItem[];
-}
-
-const OrdersPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 1,
-      orderNumber: "ORD-001",
-      clientName: "محمد أحمد",
-      fishType: "بلطي",
-      fishAmount: 5,
-      supplierName: "مورد الأسماك الطازجة",
-      orderDate: new Date().toISOString().split("T")[0],
-      orderTime: "08:30",
-      addedTime: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-002",
-      clientName: "فاطمة علي",
-      fishType: "دنيس",
-      fishAmount: 2,
-      supplierName: "شركة البحر الأحمر",
-      orderDate: new Date().toISOString().split("T")[0],
-      orderTime: "14:20",
-      addedTime: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-003",
-      clientName: "أحمد سعد",
-      fishType: "مبروك",
-      fishAmount: 4,
-      supplierName: "مزرعة الأسماك الذهبية",
-      orderDate: new Date().toISOString().split("T")[0],
-      orderTime: "16:45",
-      addedTime: new Date().toISOString(),
-    },
-  ]);
-
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: 1,
-      name: "محمد أحمد",
-      phone: "01234567890",
-      email: "mohamed@example.com",
-    },
-    {
-      id: 2,
-      name: "فاطمة علي",
-      phone: "01987654321",
-      email: "fatma@example.com",
-    },
-    {
-      id: 3,
-      name: "أحمد سعد",
-      phone: "01122334455",
-      email: "ahmed@example.com",
-    },
-  ]);
-
-  const [suppliers] = useState<string[]>([
-    "مورد الأسماك الطازجة",
-    "شركة البحر الأبيض",
-    "مزرعة الأسماك الذهبية",
-    "تجارة الأسماك المتحدة",
-  ]);
-
-  const [fishTypes] = useState<string[]>([
-    "بلطي",
-    "دنيس",
-    "مبروك",
-    "بوري",
-    "قاروص",
-    "سردين",
-    "تونة",
-    "سلمون",
-  ]);
-
+export const OrdersPage: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [types, setTypes] = useState<CategoryDto[]>([]);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [pricingOrder, setPricingOrder] = useState<Order | null>(null);
+  const [pricingOpen, setPricingOpen] = useState(false);
+
+  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [phoneFilter, setPhoneFilter] = useState("");
-  const [isNewClient, setIsNewClient] = useState(false);
-
-  const [formData, setFormData] = useState<FormData>({
-    clientId: "",
-    clientName: "",
-    clientPhone: "",
-    clientEmail: "",
-    fishItems: [{ fishType: "", quantity: "", supplier: "" }],
+  const [dateFilter, setDateFilter] = useState<string>("today");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: "",
+    to: "",
   });
+  const [unpricedOnly, setUnpricedOnly] = useState<boolean>(false);
 
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  // Get suppliers from store
+  const { suppliers, fetchSuppliers } = useSupplierStore();
 
-  const toggleDropdown = (orderId: number) => {
-    setOpenDropdown(openDropdown === orderId ? null : orderId);
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const filters: {
+        dateFilter?: string;
+        dateFrom?: string;
+        dateTo?: string;
+      } = {
+        dateFilter,
+      };
+
+      if (dateFilter === "range") {
+        filters.dateFrom = dateRange.from;
+        filters.dateTo = dateRange.to;
+      }
+
+      const ordersData = await ordersApi.getOrders(filters);
+      setOrders(ordersData);
+    } catch (err) {
+      setError("فشل في تحميل الطلبات");
+      console.error("Error loading orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateFilter, dateRange]);
+
+  // Load orders on component mount and when filters change
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // Load other data on component mount
+  useEffect(() => {
+    loadClients();
+    loadTypes();
+    fetchSuppliers();
+  }, [fetchSuppliers]);
+
+  const loadClients = async () => {
+    try {
+      const clientsData = await ordersApi.getClients();
+      setClients(clientsData);
+    } catch (err) {
+      console.error("Error loading clients:", err);
+    }
   };
 
-  const handleDeleteOrder = (orderId: number) => {
+  const loadTypes = async () => {
+    try {
+      const typesData = await deliveriesApi.getTypes();
+      setTypes(typesData);
+    } catch (err) {
+      console.error("Error loading types:", err);
+    }
+  };
+
+  // Filter orders based on date filter and search terms
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      // Date filter: backend uses 'createAt' for order creation date (fall back to 'date')
+      const rawDate = order.createAt || order.date;
+      const orderDate = rawDate ? new Date(rawDate) : new Date(0);
+      const today = new Date();
+
+      let dateMatches = true;
+      if (dateFilter === "today") {
+        dateMatches = orderDate.toDateString() === today.toDateString();
+      } else if (dateFilter === "week") {
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        dateMatches = orderDate >= weekAgo;
+      } else if (dateFilter === "month") {
+        dateMatches =
+          orderDate.getMonth() === today.getMonth() &&
+          orderDate.getFullYear() === today.getFullYear();
+      } else if (dateFilter === "range") {
+        if (dateRange.from && orderDate < new Date(dateRange.from)) {
+          dateMatches = false;
+        }
+        if (dateRange.to && orderDate > new Date(dateRange.to)) {
+          dateMatches = false;
+        }
+      }
+      // For "all", dateMatches remains true
+
+      // Search filters (empty filters should not auto-match)
+      const normalizedSearch = searchTerm.trim().toLowerCase();
+      const normalizedPhone = phoneFilter.trim();
+
+      const matchesName = (order.customerName || order.customer?.name || "")
+        .toLowerCase()
+        .includes(normalizedSearch);
+      const matchesPhone = (
+        order.customerPhone ||
+        order.customer?.phoneNumber ||
+        ""
+      ).includes(normalizedPhone);
+
+      const passesText =
+        (!normalizedSearch || matchesName) &&
+        (!normalizedPhone || matchesPhone);
+
+      // Unpriced-only filter: show orders where at least one item has price 0
+      const unpricedMatch = unpricedOnly
+        ? (order.orderItems || []).some(
+            (it) =>
+              Number(it.totalPrice || 0) === 0 ||
+              Number(it.pricePerKilo || 0) === 0
+          )
+        : true;
+
+      return dateMatches && passesText && unpricedMatch;
+    });
+  }, [orders, searchTerm, phoneFilter, dateFilter, dateRange, unpricedOnly]);
+
+  // Analytics calculations
+  const analytics: AnalyticsData = useMemo(() => {
+    const totalOrders = filteredOrders.length;
+    const totalFishAmount = filteredOrders.reduce(
+      (sum, order) =>
+        sum +
+        (order.orderItems?.reduce(
+          (itemSum, item) => itemSum + (Number(item.amount) || 0),
+          0
+        ) || 0),
+      0
+    );
+
+    const fishTypeBreakdown: Record<string, number> = {};
+    filteredOrders.forEach((order) => {
+      order.orderItems?.forEach((item) => {
+        const key: string =
+          (item as { fishTypeName?: string }).fishTypeName ||
+          item.fishTypeId ||
+          "غير معروف";
+        const amt = Number(item.amount) || 0;
+        fishTypeBreakdown[key] = (fishTypeBreakdown[key] || 0) + amt;
+      });
+    });
+
+    const uniqueCustomers = new Set(
+      filteredOrders.map((order) => order.customer?.name).filter(Boolean)
+    ).size;
+
+    return {
+      totalOrders,
+      totalFishAmount,
+      fishTypeBreakdown,
+      uniqueCustomers,
+    };
+  }, [filteredOrders]);
+
+  const handleDeleteOrder = async (orderId: string) => {
     if (window.confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
-      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+      try {
+        await ordersApi.deleteOrder(orderId);
+        await loadOrders(); // Reload orders after deletion
+      } catch (err) {
+        setError("فشل في حذف الطلب");
+        console.error("Error deleting order:", err);
+      }
     }
   };
 
   const handleEditOrder = (order: Order) => {
-    // TODO: Implement edit functionality
-    console.log("Edit order:", order);
+    setEditingOrder(order);
+    setShowAddForm(true);
   };
 
-  // Filter orders for today and by search terms
-  const filteredOrders = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return orders.filter((order) => {
-      const isToday = order.orderDate === today;
-      const matchesName = order.clientName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesPhone = order.clientPhone?.includes(phoneFilter) || true;
-      return isToday && matchesName && matchesPhone;
-    });
-  }, [orders, searchTerm, phoneFilter]);
+  const handleViewOrder = (order: Order) => {
+    setViewingOrder(order);
+    setDetailsOpen(true);
+  };
 
-  const handleClientSelect = (clientName: string) => {
-    const selectedClient = clients.find((client) => client.name === clientName);
-    if (selectedClient) {
-      setFormData((prev) => ({
-        ...prev,
-        clientId: selectedClient.id.toString(),
-        clientName: selectedClient.name,
-        clientPhone: selectedClient.phone,
-        clientEmail: selectedClient.email,
-      }));
-      setIsNewClient(false);
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        clientId: "",
-        clientName: clientName,
-        clientPhone: "",
-        clientEmail: "",
-      }));
-      setIsNewClient(true);
+  const handlePriceOrder = (order: Order) => {
+    setPricingOrder(order);
+    setPricingOpen(true);
+  };
+
+  const handleAddOrder = async (formData: FormData) => {
+    try {
+      const payload = {
+        customerId: formData.customerId,
+        customerName: formData.customerName,
+        orderItems: formData.fishItems.map((item) => ({
+          // Back-end expects fishTypeName (subtype string) and SupplierName (supplier string)
+          // Supplier select holds supplier id, so convert to name
+          fishTypeName: item.type,
+          SupplierName:
+            suppliers.find((s) => s.id === item.supplier)?.name ||
+            item.supplier,
+          amount: parseFloat(item.quantity || "0"),
+        })),
+      } as const;
+      await ordersApi.createOrder(payload);
+      await loadOrders(); // Reload orders after creation
+      setShowAddForm(false);
+    } catch (err) {
+      setError("فشل في إضافة الطلب");
+      console.error("Error creating order:", err);
     }
   };
 
-  const addFishItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      fishItems: [
-        ...prev.fishItems,
-        { fishType: "", quantity: "", supplier: "" },
-      ],
-    }));
-  };
+  const handleUpdateOrder = async (formData: FormData) => {
+    if (!editingOrder) return;
 
-  const removeFishItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      fishItems: prev.fishItems.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateFishItem = (index: number, field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      fishItems: prev.fishItems.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      ),
-    }));
-  };
-
-  const handleSubmit = () => {
-    // Create orders for each fish item
-    formData.fishItems.forEach((fishItem, index) => {
-      const newOrder: Order = {
-        id: Date.now() + index,
-        orderNumber: `ORD-${String(orders.length + index + 1).padStart(
-          3,
-          "0"
-        )}`,
-        clientName: formData.clientName,
-        clientPhone: formData.clientPhone,
-        fishType: fishItem.fishType,
-        fishAmount: parseFloat(fishItem.quantity),
-        supplierName: fishItem.supplier,
-        orderDate: new Date().toISOString().split("T")[0],
-        addedTime: new Date().toISOString(),
+    try {
+      // Transform to UpdateOrderItemsDto
+      const updateData = {
+        id: editingOrder.id,
+        orderItems: formData.fishItems.map((item) => ({
+          fishTypeName: item.type,
+          SupplierName:
+            suppliers.find((s) => s.id === item.supplier)?.name ||
+            item.supplier,
+          amount: parseFloat(item.quantity || "0"),
+        })),
       };
 
-      setOrders((prev) => [newOrder, ...prev]);
-    });
-
-    // Add new client if needed
-    if (isNewClient) {
-      const newClient: Client = {
-        id: Date.now(),
-        name: formData.clientName,
-        phone: formData.clientPhone,
-        email: formData.clientEmail,
-      };
-      setClients((prev) => [...prev, newClient]);
+      await ordersApi.updateOrder(editingOrder.id, updateData);
+      await loadOrders(); // Reload orders after update
+      setShowAddForm(false);
+      setEditingOrder(null);
+    } catch (err) {
+      // Keep modal open and show a friendly error without forcing page reload
+      console.error("Error updating order:", err);
+      alert("حدث خطأ أثناء حفظ التعديلات. راجع البيانات وحاول مرة أخرى.");
     }
-
-    // Reset form
-    setFormData({
-      clientId: "",
-      clientName: "",
-      clientPhone: "",
-      clientEmail: "",
-      fishItems: [{ fishType: "", quantity: "", supplier: "" }],
-    });
-    setIsNewClient(false);
-    setShowAddForm(false);
   };
+  const handleStartOrders = async () => {
+    try {
+      await ordersApi.createOrderList();
+      // After creating or confirming, reload today's orders
+      await loadOrders();
+    } catch (err) {
+      setError("فشل في بدء الطلبات");
+      console.error("Error starting orders:", err);
+    }
+  };
+
+  const handleRemoveOrderItem = async (
+    orderId: string,
+    itemId: string
+  ): Promise<void> => {
+    if (!orderId || !itemId) return;
+    const confirm = window.confirm("هل تريد إزالة هذا الصنف من الطلب؟");
+    if (!confirm) return;
+    try {
+      await ordersApi.deleteOrderItem(itemId);
+      // Optimistically update local state for snappier UI
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                orderItems: (o.orderItems || []).filter(
+                  (it) => it.id !== itemId
+                ),
+              }
+            : o
+        )
+      );
+      // Also refresh from server to keep totals etc. correct
+      await loadOrders();
+    } catch (err) {
+      console.error("Error removing order item:", err);
+      alert("فشل في إزالة الصنف من الطلب");
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setPhoneFilter("");
+    setDateFilter("today");
+    setDateRange({ from: "", to: "" });
+    setUnpricedOnly(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <TopNavigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">جاري التحميل...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <TopNavigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center text-red-600">{error}</div>
+          <Button onClick={loadOrders} className="mt-4">
+            إعادة المحاولة
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <TopNavigation currentPage="orders" />
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                إدارة الطلبات
-              </h1>
-              <p className="text-gray-600 mt-2">
-                عرض وإدارة طلبات اليوم الحالي
-              </p>
-            </div>
+        <TopNavigation />
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">إدارة الطلبات</h1>
+          <div className="flex gap-4">
+            <Button onClick={handleStartOrders} variant="outline">
+              بدء الطلبات
+            </Button>
             <Button onClick={() => setShowAddForm(true)}>
-              <Plus size={20} className="ml-2" />
+              <Plus className="h-4 w-4 mr-2" />
               إضافة طلب جديد
             </Button>
           </div>
         </div>
 
-        {/* Search Filters */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            البحث والفلترة
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="البحث باسم العميل..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-            <Input
-              placeholder="البحث برقم الهاتف..."
-              value={phoneFilter}
-              onChange={(e) => setPhoneFilter(e.target.value)}
-            />
-          </div>
-        </div>
+        {/* Filters */}
+        <OrdersFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          phoneFilter={phoneFilter}
+          onPhoneFilterChange={setPhoneFilter}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onClearFilters={handleClearFilters}
+          unpricedOnly={unpricedOnly}
+          onUnpricedOnlyChange={setUnpricedOnly}
+        />
 
-        {/* Add Order Form */}
-        {showAddForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <h3 className="text-lg font-semibold mb-4">إضافة طلب جديد</h3>
+        {/* Analytics */}
+        <OrdersAnalytics analytics={analytics} />
 
-              {/* Client Selection */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    العميل *
-                  </label>
-                  <select
-                    value={formData.clientName}
-                    onChange={(e) => handleClientSelect(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="">اختر عميل أو أدخل اسم جديد</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.name}>
-                        {client.name} - {client.phone}
-                      </option>
-                    ))}
-                  </select>
-                  <Input
-                    placeholder="أو أدخل اسم عميل جديد..."
-                    value={formData.clientName}
-                    onChange={(e) => handleClientSelect(e.target.value)}
-                    className="mt-2"
-                  />
-                </div>
+        {/* Orders Table */}
+        <OrdersTable
+          orders={filteredOrders}
+          dateFilter={dateFilter}
+          onEditOrder={handleEditOrder}
+          onDeleteOrder={handleDeleteOrder}
+          onRemoveItem={handleRemoveOrderItem}
+          onViewOrder={handleViewOrder}
+          onPriceOrder={handlePriceOrder}
+        />
 
-                {isNewClient && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      placeholder="رقم الهاتف *"
-                      value={formData.clientPhone}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          clientPhone: e.target.value,
-                        }))
-                      }
-                    />
-                    <Input
-                      placeholder="البريد الإلكتروني"
-                      value={formData.clientEmail}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          clientEmail: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                )}
-              </div>
+        {/* Add Order Modal */}
+        <AddOrderModal
+          isOpen={showAddForm}
+          onClose={() => {
+            setShowAddForm(false);
+            setEditingOrder(null);
+          }}
+          clients={clients}
+          suppliers={suppliers}
+          types={types}
+          onSubmit={editingOrder ? handleUpdateOrder : handleAddOrder}
+          editMode={!!editingOrder}
+          editingOrder={editingOrder}
+        />
 
-              {/* Fish Items */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-md font-medium">أصناف الأسماك</h4>
-                  <Button onClick={addFishItem} size="sm">
-                    <Plus size={16} className="ml-1" />
-                    إضافة صنف
-                  </Button>
-                </div>
+        {/* Order Details Modal */}
+        <OrderDetailsModal
+          isOpen={detailsOpen}
+          onClose={() => {
+            setDetailsOpen(false);
+            setViewingOrder(null);
+          }}
+          order={viewingOrder}
+        />
 
-                {formData.fishItems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="border border-gray-200 rounded-lg p-4"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <select
-                        value={item.fishType}
-                        onChange={(e) =>
-                          updateFishItem(index, "fishType", e.target.value)
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg"
-                      >
-                        <option value="">نوع السمك</option>
-                        {fishTypes.map((fish) => (
-                          <option key={fish} value={fish}>
-                            {fish}
-                          </option>
-                        ))}
-                      </select>
-
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="الكمية (كجم)"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateFishItem(index, "quantity", e.target.value)
-                        }
-                      />
-
-                      <select
-                        value={item.supplier}
-                        onChange={(e) =>
-                          updateFishItem(index, "supplier", e.target.value)
-                        }
-                        className="px-3 py-2 border border-gray-300 rounded-lg"
-                      >
-                        <option value="">المورد</option>
-                        {suppliers.map((supplier) => (
-                          <option key={supplier} value={supplier}>
-                            {supplier}
-                          </option>
-                        ))}
-                      </select>
-
-                      <Button
-                        onClick={() => removeFishItem(index)}
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600"
-                        disabled={formData.fishItems.length === 1}
-                      >
-                        حذف
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end space-x-4 mt-6">
-                <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                  إلغاء
-                </Button>
-                <Button onClick={handleSubmit}>حفظ الطلب</Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Today's Orders */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              طلبات اليوم ({filteredOrders.length})
-            </h2>
-          </div>
-
-          {filteredOrders.length === 0 ? (
-            <div className="p-12 text-center">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                لا توجد طلبات اليوم
-              </h3>
-              <p className="text-gray-600">
-                لم يتم إضافة أي طلبات لليوم الحالي
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      اسم العميل
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      نوع السمك
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      الكمية (كجم)
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      المورد
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      وقت الإضافة
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      الإجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {order.clientName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.fishType}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.fishAmount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.supplierName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.addedTime).toLocaleTimeString("ar-EG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="relative">
-                          <button
-                            onClick={() => toggleDropdown(order.id)}
-                            className="p-2 hover:bg-gray-100 rounded-full"
-                          >
-                            <MoreVertical size={16} className="text-gray-500" />
-                          </button>
-
-                          {openDropdown === order.id && (
-                            <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                              <div className="py-1">
-                                <button
-                                  onClick={() => {
-                                    handleEditOrder(order);
-                                    setOpenDropdown(null);
-                                  }}
-                                  className="flex items-center w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <Edit size={16} className="ml-2" />
-                                  تعديل الطلب
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    handleDeleteOrder(order.id);
-                                    setOpenDropdown(null);
-                                  }}
-                                  className="flex items-center w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 size={16} className="ml-2" />
-                                  حذف الطلب
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {/* Price Order Modal */}
+        <PriceOrderModal
+          isOpen={pricingOpen}
+          onClose={() => {
+            setPricingOpen(false);
+            setPricingOrder(null);
+          }}
+          order={pricingOrder}
+          onSavePrices={async (
+            items: Array<{
+              id: string;
+              pricePerKilo: number;
+              totalPrice: number;
+            }>
+          ) => {
+            if (!pricingOrder) return;
+            // Upsert each item with new price/total and include orderId so backend can recalc total
+            await Promise.all(
+              items.map((it) =>
+                fetch(
+                  `${
+                    import.meta.env.VITE_API_URL || "http://localhost:3000"
+                  }/orderItem`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      id: it.id,
+                      orderId: pricingOrder.id,
+                      pricePerKilo: it.pricePerKilo,
+                      totalPrice: it.totalPrice,
+                    }),
+                  }
+                )
+              )
+            );
+            // After pricing, refresh orders
+            await loadOrders();
+          }}
+        />
       </div>
     </div>
   );
 };
-
-export { OrdersPage };

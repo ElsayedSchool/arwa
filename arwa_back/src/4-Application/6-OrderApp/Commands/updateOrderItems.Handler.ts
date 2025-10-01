@@ -1,4 +1,4 @@
-import { UpsertOrderCommand, UpsertOrderDto } from "./upsertOrder.Command";
+import { UpdateOrderItemsCommand } from "./updateOrderItems.Command";
 import { OrderRepo } from "src/3-Infrastructure/Repositories";
 import { OrderItemRepo } from "src/3-Infrastructure/Repositories";
 import { CategoryRepo } from "src/3-Infrastructure/Repositories";
@@ -8,7 +8,7 @@ import { OrderItem } from "src/2-Domain/Entities";
 import { CategoryType } from "src/2-Domain/Enums";
 
 @Injectable()
-export class UpsertOrderHandler {
+export class UpdateOrderItemsHandler {
   constructor(
     private repo: OrderRepo,
     private orderItemRepo: OrderItemRepo,
@@ -16,27 +16,22 @@ export class UpsertOrderHandler {
     private supplierRepo: SupplierRepo
   ) {}
 
-  async execute(cmd: UpsertOrderCommand) {
+  async execute(cmd: UpdateOrderItemsCommand) {
     const payload = cmd.payload;
 
-    // Transform the payload from frontend format to database format
-    const transformedPayload = {
-      ...(payload.id && { id: payload.id }), // Include ID if updating
-      customerId: payload.customerId || null,
-      workerId: "system", // TODO: Get from authenticated user
-      totalPrice: 0, // TODO: Calculate based on items
-      date: new Date(),
-    };
+    // Verify order exists
+    const order = await this.repo.getRaw().findOne({
+      where: { id: payload.id },
+    });
 
-    // Create or update order
-    const order = await this.repo.getRaw().save(transformedPayload);
-
-    // If updating, delete existing order items first
-    if (payload.id) {
-      await this.orderItemRepo.getRaw().delete({ orderId: payload.id });
+    if (!order) {
+      throw new Error(`Order with id ${payload.id} not found`);
     }
 
-    // Create order items (Sold entities)
+    // Delete existing order items
+    await this.orderItemRepo.getRaw().delete({ orderId: payload.id });
+
+    // Create new order items
     if (payload.orderItems && Array.isArray(payload.orderItems)) {
       const orderItems: Partial<OrderItem>[] = [];
 
@@ -107,7 +102,7 @@ export class UpsertOrderHandler {
         }
 
         const orderItem: Partial<OrderItem> = {
-          orderId: order.id,
+          orderId: payload.id,
           SupplierId: supplierId,
           fishTypeId: category.id.toString(),
           fishTypeName: category.name,
@@ -127,6 +122,10 @@ export class UpsertOrderHandler {
       }
     }
 
-    return order;
+    // Return the updated order with items
+    return this.repo.getRaw().findOne({
+      where: { id: payload.id },
+      relations: ["orderItems"],
+    });
   }
 }

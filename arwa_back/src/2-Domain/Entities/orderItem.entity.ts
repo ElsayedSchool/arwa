@@ -6,30 +6,53 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  UpdateDateColumn,
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
 import { Order } from "./order.entity";
+import { Category } from "./category.entity";
+import { Supplier } from "./supplier.entity";
 
 @Entity()
-export class Sold extends BaseDelete {
+export class OrderItem extends BaseDelete {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ nullable: true })
-  orderId: string | null;
+  // order data and is required
+  @Column()
+  orderId: string;
 
   @ManyToOne(() => Order, (order) => order.orderItems, {
-    onDelete: "SET NULL",
-    nullable: true,
+    onDelete: "CASCADE",
   })
   @JoinColumn({ name: "orderId" })
-  order: Order | null;
+  order: Order;
+
+  // fish type data is required
+  @Column({ nullable: true })
+  fishTypeId: string | null;
 
   @Column()
-  truckId: string;
+  fishTypeName: string;
+
+  @ManyToOne(() => Category, (category) => category.OrderItem, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "fishTypeId" })
+  fishType: Category;
+
+  // supplier data and is required
+  @Column({ nullable: true })
+  SupplierId: string | null;
 
   @Column()
-  fishTypeId: string;
+  SupplierName: string;
+
+  @ManyToOne(() => Supplier, (supplier) => supplier.orderItems, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "SupplierId" })
+  Supplier: Supplier;
 
   @Column({ type: "decimal", default: 0 })
   amount: number;
@@ -38,13 +61,11 @@ export class Sold extends BaseDelete {
   pricePerKilo: number;
 
   @Column({ type: "decimal", default: 0 })
-  totalAmount: number;
+  totalPrice: number;
 
   @CreateDateColumn()
   date: Date;
 
-  // soft-delete fields inherited from BaseDelete
-
-  @Column({ nullable: true })
-  deletedBy: string | null;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

@@ -1,20 +1,15 @@
 import {
   IsString,
   IsArray,
-  IsNotEmpty,
-  IsOptional,
   ValidateNested,
+  IsNotEmpty,
   IsNumber,
-  IsUUID,
+  IsOptional,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { OrderItem } from "src/2-Domain";
 
 export class OrderItemDto {
-  @IsString()
-  @IsOptional()
-  id?: string;
-
   @IsString()
   @IsOptional()
   fishTypeId?: string;
@@ -35,26 +30,17 @@ export class OrderItemDto {
   amount: number;
 }
 
-export class UpsertOrderDto {
+export class UpdateOrderItemsDto {
   @IsString()
-  @IsOptional()
-  id?: string | null;
-
-  @IsString()
-  @IsNotEmpty({ message: "معرف العميل مطلوب" })
-  customerId: string;
-
-  @IsString()
-  @IsNotEmpty({ message: "اسم العميل مطلوب" })
-  customerName: string;
+  @IsNotEmpty({ message: "رقم الطلب مطلوب" })
+  id: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
-  @IsNotEmpty({ message: "يجب إضافة عناصر الطلب" })
   orderItems: OrderItemDto[];
 }
 
-export class UpsertOrderCommand {
-  constructor(public payload: UpsertOrderDto) {}
+export class UpdateOrderItemsCommand {
+  constructor(public payload: UpdateOrderItemsDto) {}
 }

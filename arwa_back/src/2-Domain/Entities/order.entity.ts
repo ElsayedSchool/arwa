@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import { BaseDelete } from "./base-delete.entity";
 import { Customer } from "./customer.entity";
-import { Sold } from "./orderItem.entity";
+import { OrderItem } from "./orderItem.entity";
 
 @Entity()
 export class Order extends BaseDelete {
@@ -27,18 +27,15 @@ export class Order extends BaseDelete {
   @JoinColumn({ name: "customerId" })
   customer: Customer | null;
 
-  @Column()
-  workerId: string;
+  @Column({ default: "" })
+  customerName: string;
 
   @Column({ type: "decimal", default: 0 })
   totalPrice: number;
 
   @CreateDateColumn()
-  date: Date;
+  createAt: Date;
 
-  @OneToMany(() => Sold, (item) => item.order)
-  orderItems: Sold[];
-
-  @Column({ nullable: true })
-  deletedBy: string | null;
+  @OneToMany(() => OrderItem, (item) => item.order)
+  orderItems: OrderItem[];
 }

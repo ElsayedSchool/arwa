@@ -1,4 +1,4 @@
-export class DeleteSoldCommand {
+export class DeleteOrderItemCommand {
   constructor(
     public id: string,
     public deletedById?: string,

@@ -10,6 +10,7 @@ import {
 import { BaseDelete } from "./base-delete.entity";
 import { CategoryType } from "../Enums";
 import { DeliveryItem } from "./deliveryItem.entity";
+import { OrderItem } from "./orderItem.entity";
 
 @Entity()
 @Index(["mainCategoryId", "name"], { unique: true })
@@ -62,6 +63,9 @@ export class Category extends BaseDelete {
 
   @OneToMany(() => DeliveryItem, (deliveryItem) => deliveryItem.type)
   deliveryItems?: DeliveryItem[];
+
+  @OneToMany(() => OrderItem, (OrderItem) => OrderItem.fishType)
+  OrderItem?: OrderItem[];
 
   @Index()
   @Column({ default: false })

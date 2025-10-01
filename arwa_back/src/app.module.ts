@@ -21,6 +21,8 @@ import { existsSync } from "fs";
 import { CategoryModule } from "./4-Application/3-CategoryApp/category.module";
 import { DeliveryModule } from "./4-Application/10-DeliveryApp/delivery.module";
 import { DeliveryItemModule } from "./4-Application/11-DeliveryItemApp/deliveryItem.module";
+import { OrderModule } from "./4-Application/6-OrderApp/order.module";
+import { OrderItemModule } from "./4-Application/8-OrderItemApp/orderItem.module";
 
 @Module({
   imports: [
@@ -71,6 +73,8 @@ import { DeliveryItemModule } from "./4-Application/11-DeliveryItemApp/deliveryI
     CategoryModule,
     DeliveryModule,
     DeliveryItemModule,
+    OrderModule,
+    OrderItemModule,
   ],
   controllers: [AppController],
   providers: [AppService, BcryptService],

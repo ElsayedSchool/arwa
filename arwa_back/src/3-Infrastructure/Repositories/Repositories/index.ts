@@ -5,7 +5,7 @@ export * from "./customer.repository";
 export * from "./inventory.repository";
 export * from "./order.repository";
 export { OrderRepo } from "./order.repository";
-export * from "./sold.repository";
+export * from "./orderItem.repository";
 export * from "./payment.repository";
 export * from "./supplier.repository";
 export * from "../soft.repository";
@@ -18,7 +18,7 @@ export { UserRepo } from "./user.repository";
 export { CustomerRepo } from "./customer.repository";
 export { InventoryRepo } from "./inventory.repository";
 // OrderRepo already exported above
-export { SoldRepo } from "./sold.repository";
+export { OrderItemRepo } from "./orderItem.repository";
 export { PaymentRepo } from "./payment.repository";
 export { SupplierRepo } from "./supplier.repository";
 export { DeliveryRepo } from "./delivery.repository";

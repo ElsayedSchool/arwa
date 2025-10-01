@@ -21,7 +21,13 @@ const formatCurrency = (amount: number) =>
 const formatDate = (iso?: string) => {
   if (!iso) return "-";
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("ar-SA");
+  if (isNaN(d.getTime())) return "-";
+  // Force Gregorian calendar (ميلادي) while keeping Arabic locale
+  return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 };
 
 export const CustomersTable: React.FC<CustomersTableProps> = ({
@@ -68,10 +74,16 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
             اللقب
           </th>
           <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
-            المستحق
+            رقم الهاتف
           </th>
           <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
-            آخر دفعة
+            تاريخ الانضمام
+          </th>
+          <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+            تاريخ آخر دفعة
+          </th>
+          <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
+            المستحق
           </th>
           <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">
             إجراءات
@@ -85,15 +97,21 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
             <td className="px-4 py-3 text-sm text-gray-600">
               {c.nickname || "-"}
             </td>
+            <td className="px-4 py-3 text-sm text-gray-700">
+              {c.phoneNumber || "-"}
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-700">
+              {formatDate(c.createdAt)}
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-700">
+              {formatDate(c.lastUpdated)}
+            </td>
             <td className="px-4 py-3 text-sm font-medium">
               <span
                 className={c.totalDue > 0 ? "text-red-600" : "text-green-600"}
               >
                 {formatCurrency(c.totalDue)}
               </span>
-            </td>
-            <td className="px-4 py-3 text-sm text-gray-600">
-              {formatDate(c.lastUpdated)}
             </td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-2">
