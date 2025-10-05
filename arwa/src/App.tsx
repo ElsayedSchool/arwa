@@ -90,6 +90,11 @@ const SupplierAnalysisPage = lazy(() =>
     })
   )
 );
+const ExpensesPage = lazy(() =>
+  import("./components/expenses/ExpensesPage.tsx").then((module) => ({
+    default: module.default,
+  }))
+);
 
 // Loading component
 const LoadingSpinner = () => (
@@ -166,6 +171,7 @@ function App() {
                 path="supplier-analysis"
                 element={<SupplierAnalysisPage />}
               />
+              <Route path="expenses" element={<ExpensesPage />} />
             </Route>
             {/* 404 catch-all - redirect to dashboard home */}
             <Route path="*" element={<Navigate to="/" replace />} />

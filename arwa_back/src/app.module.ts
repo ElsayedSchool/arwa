@@ -21,6 +21,7 @@ import { existsSync } from "fs";
 import { CategoryModule } from "./4-Application/3-CategoryApp/category.module";
 import { DeliveryModule } from "./4-Application/10-DeliveryApp/delivery.module";
 import { DeliveryItemModule } from "./4-Application/11-DeliveryItemApp/deliveryItem.module";
+import { ExpenseModule } from "./4-Application/12-ExpenseApp/expense.module";
 import { OrderModule } from "./4-Application/6-OrderApp/order.module";
 import { OrderItemModule } from "./4-Application/8-OrderItemApp/orderItem.module";
 
@@ -73,6 +74,7 @@ import { OrderItemModule } from "./4-Application/8-OrderItemApp/orderItem.module
     CategoryModule,
     DeliveryModule,
     DeliveryItemModule,
+    ExpenseModule,
     OrderModule,
     OrderItemModule,
   ],

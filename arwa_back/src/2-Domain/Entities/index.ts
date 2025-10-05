@@ -9,3 +9,7 @@ export * from "./supplier.entity";
 export * from "./delivery.entity";
 export * from "./user-profile.entity";
 export * from "./deliveryItem.entity";
+export * from "./customer-payment.entity";
+export * from "./supplier-payment.entity";
+export * from "./staff-payment.entity";
+export * from "./expense.entity";

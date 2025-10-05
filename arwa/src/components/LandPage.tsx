@@ -237,6 +237,19 @@ const LandPage: React.FC = () => {
               </button>
 
               <button
+                onClick={() => navigate("/dashboard/expenses")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <DollarSign className="h-8 w-8 text-orange-600 group-hover:text-orange-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    المصروفات
+                  </h3>
+                </div>
+                <p className="text-gray-600">إدارة المصروفات والنفقات</p>
+              </button>
+
+              <button
                 onClick={() => navigate("/dashboard/inventory-movement")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >

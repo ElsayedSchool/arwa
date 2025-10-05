@@ -8,6 +8,7 @@ export { OrderRepo } from "./order.repository";
 export * from "./orderItem.repository";
 export * from "./payment.repository";
 export * from "./supplier.repository";
+export * from "./expense.repository";
 export * from "../soft.repository";
 export * from "../base.repository";
 
@@ -23,3 +24,4 @@ export { PaymentRepo } from "./payment.repository";
 export { SupplierRepo } from "./supplier.repository";
 export { DeliveryRepo } from "./delivery.repository";
 export { DeliveryItemRepo } from "./deliveryItem.repository";
+export { ExpenseRepo } from "./expense.repository";
