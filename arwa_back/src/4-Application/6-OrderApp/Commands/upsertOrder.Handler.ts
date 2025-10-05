@@ -24,7 +24,11 @@ export class UpsertOrderHandler {
       ...(payload.id && { id: payload.id }), // Include ID if updating
       customerId: payload.customerId || null,
       workerId: "system", // TODO: Get from authenticated user
-      totalPrice: 0, // TODO: Calculate based on items
+      totalPrice: 0, // Will be calculated based on items or set from payload
+      totalDebt: payload.totalDebt || 0,
+      paid: payload.paid || 0,
+      discount: payload.discount || 0,
+      updatedDebt: payload.updatedDebt || 0,
       date: new Date(),
     };
 

@@ -25,6 +25,16 @@ import {
   UpdateOrderItemsCommand,
   UpdateOrderItemsDto,
 } from "./Commands/updateOrderItems.Command";
+import { UpdateOrderFinancialHandler } from "./Commands/updateOrderFinancial.Handler";
+import {
+  UpdateOrderFinancialCommand,
+  UpdateOrderFinancialDto,
+} from "./Commands/updateOrderFinancial.Command";
+import { UpdateOrderPriceHandler } from "./Commands/updateOrderPrice.Handler";
+import {
+  UpdateOrderPriceCommand,
+  UpdateOrderPriceDto,
+} from "./Commands/updateOrderPrice.Command";
 
 @Controller("order")
 export class OrderController {
@@ -33,6 +43,8 @@ export class OrderController {
     private readonly getById: GetByIdOrderHandler,
     private readonly upsert: UpsertOrderHandler,
     private readonly updateItems: UpdateOrderItemsHandler,
+    private readonly updateFinancial: UpdateOrderFinancialHandler,
+    private readonly updatePrice: UpdateOrderPriceHandler,
     private readonly del: DeleteOrderHandler,
     private readonly createList: CreateOrderListHandler
   ) {}
@@ -59,10 +71,28 @@ export class OrderController {
   }
 
   @Put(":id")
-  async updateOne(@Param("id") id: string, @Body() body: UpdateOrderItemsDto) {
+  async updateOne(@Param("id") id: string, @Body() body: UpsertOrderDto) {
     // Ensure the ID from the URL parameter is used
     body.id = id;
-    return this.updateItems.execute(new UpdateOrderItemsCommand(body));
+    return this.upsert.execute(new UpsertOrderCommand(body));
+  }
+
+  @Put(":id/financial")
+  async updateOrderFinancial(
+    @Param("id") id: string,
+    @Body() body: UpdateOrderFinancialDto
+  ) {
+    return this.updateFinancial.execute(
+      new UpdateOrderFinancialCommand(id, body)
+    );
+  }
+
+  @Put(":id/price")
+  async updateOrderPrice(
+    @Param("id") id: string,
+    @Body() body: UpdateOrderPriceDto
+  ) {
+    return this.updatePrice.execute(new UpdateOrderPriceCommand(id, body));
   }
 
   @Post("create-list")

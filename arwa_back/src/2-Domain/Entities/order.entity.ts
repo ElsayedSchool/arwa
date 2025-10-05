@@ -33,6 +33,18 @@ export class Order extends BaseDelete {
   @Column({ type: "decimal", default: 0 })
   totalPrice: number;
 
+  @Column({ type: "decimal", default: 0 })
+  totalDebt: number;
+
+  @Column({ type: "decimal", default: 0 })
+  paid: number;
+
+  @Column({ type: "decimal", default: 0 })
+  discount: number;
+
+  @Column({ type: "decimal", default: 0 })
+  updatedDebt: number;
+
   @CreateDateColumn()
   createAt: Date;
 

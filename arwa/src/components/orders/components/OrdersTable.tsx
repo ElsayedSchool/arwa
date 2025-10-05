@@ -7,6 +7,7 @@ import {
   Fish,
   Eye,
   Trash2,
+  DollarSign,
 } from "lucide-react";
 import type { Order } from "../api/ordersApi";
 
@@ -40,6 +41,8 @@ interface OrdersTableProps {
   onRemoveItem?: (orderId: string, itemId: string) => Promise<void>;
   onViewOrder?: (order: Order) => void;
   onPriceOrder?: (order: Order) => void;
+  onPaymentOrder?: (order: Order) => void;
+  onUpdatePrice?: (order: Order) => void;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -49,6 +52,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onDeleteOrder,
   onViewOrder,
   onPriceOrder,
+  onPaymentOrder,
+  onUpdatePrice,
 }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -128,6 +133,15 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                           <Edit size={16} className="text-gray-500" />
                         </button>
                       )}
+                      {onPaymentOrder && (
+                        <button
+                          onClick={() => onPaymentOrder(order)}
+                          className="p-2 hover:bg-gray-100 rounded-full"
+                          title="إضافة دفعة"
+                        >
+                          <DollarSign size={16} className="text-gray-500" />
+                        </button>
+                      )}
                       <button
                         onClick={() => toggleDropdown(order.id)}
                         className="p-2 hover:bg-gray-100 rounded-full"
@@ -165,6 +179,30 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                             <Edit size={16} className="ml-2" />
                             تعديل الطلب
                           </button>
+                          {onUpdatePrice && (
+                            <button
+                              onClick={() => {
+                                onUpdatePrice(order);
+                                setOpenDropdown(null);
+                              }}
+                              className="flex items-center w-full text-right px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+                            >
+                              <DollarSign size={16} className="ml-2" />
+                              تحديث السعر
+                            </button>
+                          )}
+                          {onPaymentOrder && (
+                            <button
+                              onClick={() => {
+                                onPaymentOrder(order);
+                                setOpenDropdown(null);
+                              }}
+                              className="flex items-center w-full text-right px-4 py-2 text-sm text-green-600 hover:bg-green-50"
+                            >
+                              <DollarSign size={16} className="ml-2" />
+                              إضافة دفعة
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               onDeleteOrder(order.id);
@@ -183,40 +221,44 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
 
                 {/* Stats Grid */}
                 <div className="mt-2 grid grid-cols-3 gap-2">
-                  <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-                    <div className="text-[11px] text-gray-600">
-                      إجمالي السعر
+                  <div className="bg-red-50 border border-red-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-red-600">الدين السابق</div>
+                    <div className="text-sm font-semibold text-red-700">
+                      {`${Number(order.totalDebt || 0).toFixed(2)} ج.م`}
                     </div>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-gray-600">سعر الطلب</div>
                     <div className="text-sm font-semibold text-gray-900">
                       {`${Number(order.totalPrice || 0).toFixed(2)} ج.م`}
                     </div>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-                    <div className="text-[11px] text-gray-600">عدد العناصر</div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {order.orderItems?.length || 0}
+                  <div className="bg-green-50 border border-green-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-green-600">المدفوع</div>
+                    <div className="text-sm font-semibold text-green-700">
+                      {`${Number(order.paid || 0).toFixed(2)} ج.م`}
                     </div>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-                    <div className="text-[11px] text-gray-600">حالة الدفع</div>
-                    <div className="text-xs font-medium">
-                      {/* If a future field like order.isPaid exists, use it; otherwise show N/A */}
-                      {typeof (order as unknown as { isPaid?: boolean })
-                        .isPaid === "boolean" ? (
-                        (order as unknown as { isPaid?: boolean }).isPaid ? (
-                          <span className="inline-block px-2 py-0.5 rounded bg-green-100 text-green-700">
-                            مدفوع
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2 py-0.5 rounded bg-red-100 text-red-700">
-                            غير مدفوع
-                          </span>
-                        )
-                      ) : (
-                        <span className="inline-block px-2 py-0.5 rounded bg-gray-100 text-gray-600">
-                          غير متوفر
-                        </span>
-                      )}
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-blue-600">الخصم</div>
+                    <div className="text-sm font-semibold text-blue-700">
+                      {`${Number(order.discount || 0).toFixed(2)} ج.م`}
+                    </div>
+                  </div>
+                  <div className="bg-orange-50 border border-orange-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-orange-600">
+                      الدين المحدث
+                    </div>
+                    <div className="text-sm font-semibold text-orange-700">
+                      {`${Number(order.updatedDebt || 0).toFixed(2)} ج.م`}
+                    </div>
+                  </div>
+                  <div className="bg-purple-50 border border-purple-200 rounded p-2 text-center">
+                    <div className="text-[11px] text-purple-600">
+                      عدد العناصر
+                    </div>
+                    <div className="text-sm font-semibold text-purple-700">
+                      {order.orderItems?.length || 0}
                     </div>
                   </div>
                 </div>

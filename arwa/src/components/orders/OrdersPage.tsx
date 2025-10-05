@@ -8,6 +8,8 @@ import { OrdersTable } from "./components/OrdersTable";
 import { AddOrderModal } from "./modals/AddOrderModal";
 import { OrderDetailsModal } from "./modals/OrderDetailsModal";
 import { PriceOrderModal } from "./modals/PriceOrderModal";
+import { AddPaymentModal } from "./modals/AddPaymentModal";
+import { UpdatePriceModal } from "./modals/UpdatePriceModal";
 import { ordersApi } from "./api/ordersApi";
 import { deliveriesApi } from "../deliveries/api/deliveriesApi";
 import { useSupplierStore } from "../../stores/supplierStore";
@@ -36,6 +38,10 @@ export const OrdersPage: React.FC = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [pricingOrder, setPricingOrder] = useState<Order | null>(null);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [updatePriceOrder, setUpdatePriceOrder] = useState<Order | null>(null);
+  const [updatePriceOpen, setUpdatePriceOpen] = useState(false);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -169,13 +175,12 @@ export const OrdersPage: React.FC = () => {
   // Analytics calculations
   const analytics: AnalyticsData = useMemo(() => {
     const totalOrders = filteredOrders.length;
-    const totalFishAmount = filteredOrders.reduce(
-      (sum, order) =>
-        sum +
-        (order.orderItems?.reduce(
-          (itemSum, item) => itemSum + (Number(item.amount) || 0),
-          0
-        ) || 0),
+    const totalPaid = filteredOrders.reduce(
+      (sum, order) => sum + (Number(order.paid) || 0),
+      0
+    );
+    const totalUpdatedDebt = filteredOrders.reduce(
+      (sum, order) => sum + (Number(order.updatedDebt) || 0),
       0
     );
 
@@ -197,7 +202,8 @@ export const OrdersPage: React.FC = () => {
 
     return {
       totalOrders,
-      totalFishAmount,
+      totalPaid,
+      totalUpdatedDebt,
       fishTypeBreakdown,
       uniqueCustomers,
     };
@@ -230,6 +236,55 @@ export const OrdersPage: React.FC = () => {
     setPricingOpen(true);
   };
 
+  const handlePaymentOrder = (order: Order) => {
+    setPaymentOrder(order);
+    setPaymentOpen(true);
+  };
+
+  const handleUpdatePrice = (order: Order) => {
+    setUpdatePriceOrder(order);
+    setUpdatePriceOpen(true);
+  };
+
+  const handleSavePriceUpdate = async (orderId: string, newPrice: number) => {
+    try {
+      await ordersApi.updateOrderPrice(orderId, { totalPrice: newPrice });
+      await loadOrders(); // Reload orders after update
+      setUpdatePriceOpen(false);
+      setUpdatePriceOrder(null);
+    } catch (error) {
+      console.error("Error updating price:", error);
+      alert("حدث خطأ أثناء تحديث السعر");
+    }
+  };
+
+  const handleSavePayment = async (paymentData: {
+    totalDebt: number;
+    orderPrice: number;
+    paid: number;
+    discount: number;
+    updatedDebt: number;
+  }) => {
+    if (!paymentOrder) return;
+
+    try {
+      // Update only the financial data using the new API
+      await ordersApi.updateOrderFinancial(paymentOrder.id, {
+        totalDebt: paymentData.totalDebt,
+        paid: paymentData.paid,
+        discount: paymentData.discount,
+        updatedDebt: paymentData.updatedDebt,
+      });
+
+      await loadOrders(); // Reload orders after payment update
+      setPaymentOpen(false);
+      setPaymentOrder(null);
+    } catch (err) {
+      setError("فشل في حفظ الدفعة");
+      console.error("Error saving payment:", err);
+    }
+  };
+
   const handleAddOrder = async (formData: FormData) => {
     try {
       const payload = {
@@ -244,6 +299,10 @@ export const OrdersPage: React.FC = () => {
             item.supplier,
           amount: parseFloat(item.quantity || "0"),
         })),
+        totalDebt: formData.totalDebt,
+        paid: formData.paid,
+        discount: formData.discount,
+        updatedDebt: formData.updatedDebt,
       } as const;
       await ordersApi.createOrder(payload);
       await loadOrders(); // Reload orders after creation
@@ -261,6 +320,9 @@ export const OrdersPage: React.FC = () => {
       // Transform to UpdateOrderItemsDto
       const updateData = {
         id: editingOrder.id,
+        customerId: editingOrder.customerId || editingOrder.customer?.id || "",
+        customerName:
+          editingOrder.customerName || editingOrder.customer?.name || "",
         orderItems: formData.fishItems.map((item) => ({
           fishTypeName: item.type,
           SupplierName:
@@ -398,6 +460,8 @@ export const OrdersPage: React.FC = () => {
           onRemoveItem={handleRemoveOrderItem}
           onViewOrder={handleViewOrder}
           onPriceOrder={handlePriceOrder}
+          onPaymentOrder={handlePaymentOrder}
+          onUpdatePrice={handleUpdatePrice}
         />
 
         {/* Add Order Modal */}
@@ -464,6 +528,28 @@ export const OrdersPage: React.FC = () => {
             // After pricing, refresh orders
             await loadOrders();
           }}
+        />
+
+        {/* Add Payment Modal */}
+        <AddPaymentModal
+          isOpen={paymentOpen}
+          onClose={() => {
+            setPaymentOpen(false);
+            setPaymentOrder(null);
+          }}
+          order={paymentOrder}
+          onSave={handleSavePayment}
+        />
+
+        {/* Update Price Modal */}
+        <UpdatePriceModal
+          isOpen={updatePriceOpen}
+          onClose={() => {
+            setUpdatePriceOpen(false);
+            setUpdatePriceOrder(null);
+          }}
+          order={updatePriceOrder}
+          onSave={handleSavePriceUpdate}
         />
       </div>
     </div>

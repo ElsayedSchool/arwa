@@ -109,6 +109,40 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           </div>
         </div>
 
+        {/* Financial Details */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+            <DollarSign className="h-4 w-4 ml-2" />
+            التفاصيل المالية
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-600">إجمالي الدين السابق</div>
+              <div className="mt-1 text-lg font-semibold text-red-600">
+                {money(Number(order.totalDebt || 0))}
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-600">المبلغ المدفوع</div>
+              <div className="mt-1 text-lg font-semibold text-green-600">
+                {money(Number(order.paid || 0))}
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-600">الخصم المطبق</div>
+              <div className="mt-1 text-lg font-semibold text-blue-600">
+                {money(Number(order.discount || 0))}
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-600">الدين المحدث</div>
+              <div className="mt-1 text-lg font-semibold text-orange-600">
+                {money(Number(order.updatedDebt || 0))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Items table */}
         <div>
           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">

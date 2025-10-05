@@ -8,6 +8,10 @@ export interface Order {
   customerName?: string;
   customerPhone?: string;
   totalPrice: number;
+  totalDebt: number;
+  paid: number;
+  discount: number;
+  updatedDebt: number;
   // Backend entity uses createAt (CreateDateColumn)
   createAt?: string;
   date?: string;
@@ -57,6 +61,10 @@ export interface FormData {
   customerPhone: string;
   customerEmail: string;
   fishItems: FishItem[];
+  totalDebt?: number;
+  paid?: number;
+  discount?: number;
+  updatedDebt?: number;
 }
 
 // Payloads matching backend DTOs (UpsertOrderDto and OrderItemDto)
@@ -74,6 +82,10 @@ export interface UpsertOrderDtoPayload {
   customerId: string;
   customerName: string;
   orderItems: OrderItemDtoPayload[];
+  totalDebt?: number;
+  paid?: number;
+  discount?: number;
+  updatedDebt?: number;
 }
 
 export interface UpdateOrderItemsPayload {
@@ -87,7 +99,8 @@ export interface UpdateOrderItemsPayload {
 
 export interface AnalyticsData {
   totalOrders: number;
-  totalFishAmount: number;
+  totalPaid: number;
+  totalUpdatedDebt: number;
   fishTypeBreakdown: Record<string, number>;
   uniqueCustomers: number;
 }
@@ -177,7 +190,7 @@ export const ordersApi = {
 
   updateOrder: async (
     id: string,
-    orderData: UpdateOrderItemsPayload
+    orderData: UpsertOrderDtoPayload
   ): Promise<Order> => {
     try {
       const response = await fetch(`${API_BASE_URL}/order/${id}`, {
@@ -185,7 +198,7 @@ export const ordersApi = {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify({ ...orderData, id }),
       });
       if (!response.ok) {
         throw new Error("Failed to update order");
@@ -193,6 +206,57 @@ export const ordersApi = {
       return await response.json();
     } catch (error) {
       console.error("Error updating order:", error);
+      throw error;
+    }
+  },
+
+  updateOrderFinancial: async (
+    id: string,
+    financialData: {
+      totalDebt?: number;
+      paid?: number;
+      discount?: number;
+      updatedDebt?: number;
+    }
+  ): Promise<Order> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/order/${id}/financial`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(financialData),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update order financial data");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating order financial data:", error);
+      throw error;
+    }
+  },
+
+  updateOrderPrice: async (
+    id: string,
+    priceData: {
+      totalPrice: number;
+    }
+  ): Promise<Order> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/order/${id}/price`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(priceData),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update order price");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating order price:", error);
       throw error;
     }
   },

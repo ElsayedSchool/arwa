@@ -12,6 +12,8 @@ import { UpsertOrderHandler } from "./Commands/upsertOrder.Handler";
 import { DeleteOrderHandler } from "./Commands/deleteOrder.Handler";
 import { CreateOrderListHandler } from "./Commands/createOrderList.Handler";
 import { UpdateOrderItemsHandler } from "./Commands/updateOrderItems.Handler";
+import { UpdateOrderFinancialHandler } from "./Commands/updateOrderFinancial.Handler";
+import { UpdateOrderPriceHandler } from "./Commands/updateOrderPrice.Handler";
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { UpdateOrderItemsHandler } from "./Commands/updateOrderItems.Handler";
     GetByIdOrderHandler,
     UpsertOrderHandler,
     UpdateOrderItemsHandler,
+    UpdateOrderFinancialHandler,
+    UpdateOrderPriceHandler,
     DeleteOrderHandler,
     CreateOrderListHandler,
   ],

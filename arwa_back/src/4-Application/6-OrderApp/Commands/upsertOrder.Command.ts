@@ -48,6 +48,22 @@ export class UpsertOrderDto {
   @IsNotEmpty({ message: "اسم العميل مطلوب" })
   customerName: string;
 
+  @IsNumber({}, { message: "إجمالي الدين يجب أن يكون رقماً" })
+  @IsOptional()
+  totalDebt?: number;
+
+  @IsNumber({}, { message: "المبلغ المدفوع يجب أن يكون رقماً" })
+  @IsOptional()
+  paid?: number;
+
+  @IsNumber({}, { message: "الخصم يجب أن يكون رقماً" })
+  @IsOptional()
+  discount?: number;
+
+  @IsNumber({}, { message: "الدين المحدث يجب أن يكون رقماً" })
+  @IsOptional()
+  updatedDebt?: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
