@@ -102,7 +102,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
               <DollarSign className="h-5 w-5 ml-2" />
               المعلومات المالية
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-500">التكلفة الإجمالية</p>
                 <p className="text-lg font-semibold text-gray-900">
@@ -127,6 +127,22 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                     : "-"}
                 </p>
               </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-500">الدين المحدث</p>
+                <p className="text-lg font-semibold text-blue-600">
+                  {delivery.updatedDebt
+                    ? `${delivery.updatedDebt.toLocaleString()} ج.م`
+                    : "-"}
+                </p>
+              </div>
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-500">إجمالي المبيعات</p>
+                <p className="text-lg font-semibold text-purple-600">
+                  {delivery.totalSoldPrice
+                    ? `${delivery.totalSoldPrice.toLocaleString()} ج.م`
+                    : "-"}
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -134,7 +150,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
         {/* Fish Types */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
-            أنواع الأسماك
+            أنواع الأسماك والمعلومات المالية
           </h3>
           <div className="space-y-3">
             {delivery.fishTypes.map((fish, index: number) => (
@@ -142,7 +158,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                 key={index}
                 className="border border-gray-200 rounded-lg p-4"
               >
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">النوع</p>
                     <p className="font-medium">{fish.type}</p>
@@ -158,8 +174,16 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">الإجمالي</p>
+                    <p className="text-sm text-gray-500">المباع</p>
                     <p className="font-medium text-blue-600">
+                      {fish.soldAmount
+                        ? `${fish.soldAmount.toFixed(1)} كجم`
+                        : "0 كجم"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">الإجمالي</p>
+                    <p className="font-medium text-green-600">
                       {(fish.weight * fish.pricePerKg).toFixed(2)} ج.م
                     </p>
                   </div>

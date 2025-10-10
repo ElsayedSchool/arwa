@@ -353,6 +353,7 @@ const InventoryPage: React.FC = () => {
           isOpen={showDetailsModal}
           onClose={() => setShowDetailsModal(false)}
           delivery={selectedDelivery}
+          userRole="owner"
         />
 
         <UpdateRestAmountsModal
