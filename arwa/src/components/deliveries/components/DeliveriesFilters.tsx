@@ -29,6 +29,8 @@ interface DeliveriesFiltersProps {
   onClearFilters: () => void;
   unpricedOnly: boolean;
   onUnpricedOnlyChange: (value: boolean) => void;
+  paymentOnly: boolean;
+  onPaymentOnlyChange: (value: boolean) => void;
 }
 
 export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
@@ -51,6 +53,8 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
   onClearFilters,
   unpricedOnly,
   onUnpricedOnlyChange,
+  paymentOnly,
+  onPaymentOnlyChange,
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
@@ -150,6 +154,16 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
             onChange={(e) => onUnpricedOnlyChange(e.target.checked)}
           />
           <span className="text-sm text-gray-700">عرض غير المسعّرة فقط</span>
+        </label>
+
+        {/* Payment Only */}
+        <label className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+          <input
+            type="checkbox"
+            checked={paymentOnly}
+            onChange={(e) => onPaymentOnlyChange(e.target.checked)}
+          />
+          <span className="text-sm text-gray-700">الدفعات فقط</span>
         </label>
       </div>
 

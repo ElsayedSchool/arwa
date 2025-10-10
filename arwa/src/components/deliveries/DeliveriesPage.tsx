@@ -58,6 +58,7 @@ const DeliveriesPage: React.FC = () => {
   const [subtypeNames, setSubtypeNames] = useState<string[]>([]);
   const [types, setTypes] = useState<CategoryDto[]>([]);
   const [unpricedOnly, setUnpricedOnly] = useState<boolean>(false);
+  const [paymentOnly, setPaymentOnly] = useState<boolean>(false);
 
   // Modals state
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -344,6 +345,8 @@ const DeliveriesPage: React.FC = () => {
     setSelectedSubtype("");
     setDateFilter("all");
     setDateRange({ from: "", to: "" });
+    setPaymentOnly(false);
+    setUnpricedOnly(false);
   };
 
   const fetchDeliveries = useCallback(
@@ -360,6 +363,8 @@ const DeliveriesPage: React.FC = () => {
             if (dateRange.to) filters.to = dateRange.to;
           }
         }
+        if (paymentOnly) filters.paymentOnly = "true";
+        if (unpricedOnly) filters.unpricedOnly = "true";
       }
 
       const [deliveries, types] = await Promise.all([
@@ -376,7 +381,15 @@ const DeliveriesPage: React.FC = () => {
       setSubtypeNames([]);
       setTypes(types);
     },
-    [selectedSupplier, selectedBaseType, selectedSubtype, dateFilter, dateRange]
+    [
+      selectedSupplier,
+      selectedBaseType,
+      selectedSubtype,
+      dateFilter,
+      dateRange,
+      paymentOnly,
+      unpricedOnly,
+    ]
   );
 
   const fetchDrivers = useCallback(async () => {
@@ -674,6 +687,8 @@ const DeliveriesPage: React.FC = () => {
           onClearFilters={clearFilters}
           unpricedOnly={unpricedOnly}
           onUnpricedOnlyChange={setUnpricedOnly}
+          paymentOnly={paymentOnly}
+          onPaymentOnlyChange={setPaymentOnly}
         />
 
         <DeliveriesAnalytics analytics={analytics} />

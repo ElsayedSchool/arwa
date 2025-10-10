@@ -8,6 +8,8 @@ interface DeliveryFilters {
   to?: string; // ISO date string
   fishType?: string; // type name
   baseType?: string; // base type category
+  paymentOnly?: string; // "true" to show only payment deliveries
+  unpricedOnly?: string; // "true" to show only unpriced deliveries
 }
 
 @Injectable()
@@ -42,6 +44,14 @@ export class GetAllDeliveryHandler {
       qb.andWhere("mainCategory.name ILIKE :baseType", {
         baseType: `%${filters.baseType}%`,
       });
+    }
+
+    if (filters.paymentOnly === "true") {
+      qb.andWhere("d.isPayment = :isPayment", { isPayment: true });
+    }
+
+    if (filters.unpricedOnly === "true") {
+      qb.andWhere("d.totalDeliveryPrice = 0 AND d.isPayment = false");
     }
 
     if (filters.dateFilter) {

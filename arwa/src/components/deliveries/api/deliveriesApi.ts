@@ -155,6 +155,8 @@ export const deliveriesApi = {
     from?: string;
     to?: string;
     fishType?: string;
+    paymentOnly?: string;
+    unpricedOnly?: string;
   }): Promise<DeliveryUi[]> {
     const { data } = await api.get("/delivery", { params: filters });
     return Array.isArray(data) ? data : data?.items ?? [];
