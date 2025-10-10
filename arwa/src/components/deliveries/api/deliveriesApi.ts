@@ -44,6 +44,7 @@ export interface FishTypeUi {
   unit: string;
   weight: number;
   pricePerKg: number;
+  soldAmount?: number;
 }
 
 export interface DeliveryUi {
@@ -58,6 +59,9 @@ export interface DeliveryUi {
   totalCost: number;
   amountPaid: number;
   remainingAmount: number;
+  updatedDebt: number;
+  soldAmount: number;
+  totalSoldPrice: number;
   fishTypes: FishTypeUi[];
   deliveryType?: string; // "delivery" | "payment"
   isPayment?: boolean;

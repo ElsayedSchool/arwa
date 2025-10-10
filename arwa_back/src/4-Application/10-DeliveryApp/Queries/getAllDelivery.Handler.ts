@@ -112,6 +112,9 @@ export class GetAllDeliveryHandler {
       totalCost: delivery.totalDeliveryPrice,
       amountPaid: delivery.totalPaidDelivery,
       remainingAmount: delivery.totalDebt,
+      updatedDebt: delivery.updatedDebt,
+      soldAmount: delivery.soldAmount,
+      totalSoldPrice: delivery.totalSoldPrice,
       isPayment: delivery.isPayment,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
@@ -120,6 +123,7 @@ export class GetAllDeliveryHandler {
           category: item.type?.mainCategory?.name || item.type?.name || "",
           weight: Number(item.amount),
           pricePerKg: Number((item as any).pricePerKilo ?? 0),
+          soldAmount: Number(item.soldAmount ?? 0),
         })) || [],
     }));
   }

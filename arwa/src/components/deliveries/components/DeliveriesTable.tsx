@@ -237,28 +237,10 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                     </div>
                     <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
                       <div className="text-[11px] text-blue-600">
-                        حالة الدفع
+                        الدين المحدث
                       </div>
-                      <div className="text-xs font-medium">
-                        {delivery.paymentStatus === "paid" ? (
-                          <span className="text-green-700">مدفوع</span>
-                        ) : delivery.paymentStatus === "partial" ? (
-                          <span className="text-amber-700">مدفوع جزئي</span>
-                        ) : delivery.paymentStatus === "unpaid" ? (
-                          <span className="text-red-700">غير مدفوع</span>
-                        ) : (
-                          <span className="text-gray-600">غير متوفر</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="bg-orange-50 border border-orange-200 rounded p-2 text-center">
-                      <div className="text-[11px] text-orange-600">
-                        آخر تحديث
-                      </div>
-                      <div className="text-xs font-semibold text-orange-700">
-                        {delivery.lastEditTime
-                          ? formatRelativeDate(delivery.lastEditTime)
-                          : "غير محدد"}
+                      <div className="text-sm font-semibold text-blue-700">
+                        {formatMoney(delivery.updatedDebt || 0)}
                       </div>
                     </div>
                     <div className="bg-purple-50 border border-purple-200 rounded p-2 text-center">
@@ -267,6 +249,14 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                       </div>
                       <div className="text-sm font-semibold text-purple-700">
                         {Number(delivery.totalWeight || 0)} كجم
+                      </div>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-green-600">
+                        إجمالي سعر المبيعات
+                      </div>
+                      <div className="text-sm font-semibold text-green-700">
+                        {formatMoney(delivery.totalSoldPrice || 0)}
                       </div>
                     </div>
                   </div>
@@ -286,20 +276,49 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                           (Number(fish.pricePerKg) || 0);
                         return (
                           <div key={idx} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex justify-between items-center gap-3">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium text-gray-900">{`${fish.weight} ${fish.type}`}</div>
+                            <div className="grid grid-cols-3 gap-2 items-center">
+                              {/* Weight and Type */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  الوزن
+                                </div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {fish.weight} كجم
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {fish.type}
+                                </div>
                               </div>
-                              <div>
-                                {itemTotal > 0 ? (
-                                  <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                                    {itemTotal.toFixed(2)} ج.م
-                                  </span>
-                                ) : (
-                                  <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-                                    لم تسعر
-                                  </span>
-                                )}
+
+                              {/* Sold Amount */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  مباع
+                                </div>
+                                <div className="text-sm font-medium text-blue-600">
+                                  {fish.soldAmount !== undefined &&
+                                  fish.soldAmount > 0
+                                    ? `${fish.soldAmount} كجم`
+                                    : "0 كجم"}
+                                </div>
+                              </div>
+
+                              {/* Price */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  السعر
+                                </div>
+                                <div>
+                                  {itemTotal > 0 ? (
+                                    <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                                      {itemTotal.toFixed(2)} ج.م
+                                    </span>
+                                  ) : (
+                                    <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
+                                      لم تسعر
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -310,20 +329,18 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                         لا توجد عناصر في هذا التوصيل
                       </div>
                     )}
-                    {items.length > 3 && (
-                      <div className="pt-1">
-                        <button
-                          onClick={() =>
-                            onViewDetails && onViewDetails(delivery)
-                          }
-                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
-                        >
-                          <Eye size={14} /> عرض المزيد من التفاصيل (
-                          {items.length - 3} عناصر إضافية)
-                        </button>
-                      </div>
-                    )}
                   </div>
+                  {items.length > 3 && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => onViewDetails && onViewDetails(delivery)}
+                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                      >
+                        <Eye size={14} /> عرض المزيد من التفاصيل (
+                        {items.length - 3} عناصر إضافية)
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

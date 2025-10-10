@@ -72,6 +72,12 @@ export class Delivery extends BaseDelete {
   @Column({ type: "decimal", default: 0, name: "updated_debt" })
   updatedDebt: number;
 
+  @Column({ type: "decimal", default: 0 })
+  soldAmount: number;
+
+  @Column({ type: "decimal", default: 0 })
+  totalSoldPrice: number;
+
   @OneToMany(() => DeliveryItem, (di) => di.delivery)
   deliveryItems: DeliveryItem[];
   // inherits soft-delete fields from BaseDelete

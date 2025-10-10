@@ -205,9 +205,40 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                       items.slice(0, 3).map((fish, idx) => {
                         return (
                           <div key={idx} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex justify-between items-center gap-3">
-                              <div className="flex-1">
-                                <div className="text-sm font-medium text-gray-900">{`${fish.weight} كجم - ${fish.type}`}</div>
+                            <div className="grid grid-cols-3 gap-2 items-center">
+                              {/* Weight and Type */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  الوزن
+                                </div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {fish.weight} كجم
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {fish.type}
+                                </div>
+                              </div>
+
+                              {/* Remaining/Stock Amount */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  المتبقي
+                                </div>
+                                <div className="text-sm font-medium text-blue-600">
+                                  {fish.quantity || 0} كجم
+                                </div>
+                              </div>
+
+                              {/* Status/Info */}
+                              <div className="text-center">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  الحالة
+                                </div>
+                                <div>
+                                  <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                                    متاح
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
