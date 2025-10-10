@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import ExcelJS from "exceljs";
-import { Plus, Truck } from "lucide-react";
+import { Truck } from "lucide-react";
 import { Button } from "../ui/Button";
 import { TopNavigation } from "../common/TopNavigation";
 import { DeliveriesTable } from "./components/DeliveriesTable";
@@ -16,10 +16,12 @@ import { AddDeliveryModal } from "./modals/AddDeliveryModal";
 import { DeliveryDetailsModal } from "./modals/DeliveryDetailsModal";
 import { EnterCostModal } from "./modals/EnterCostModal";
 import { PriceDeliveryModal } from "./modals/PriceDeliveryModal";
+import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import deliveriesApi, {
   type DeliveryUi,
   type CategoryDto,
 } from "./api/deliveriesApi";
+import { employeeApi } from "../employees/api/employeeApi";
 import { useSupplierStore } from "../../stores/supplierStore";
 
 // FishType interface now modeled in deliveriesApi.FishTypeUi
@@ -63,6 +65,7 @@ const DeliveriesPage: React.FC = () => {
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showCostModal, setShowCostModal] = useState<boolean>(false);
   const [showPriceModal, setShowPriceModal] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
     null
   );
@@ -70,6 +73,12 @@ const DeliveriesPage: React.FC = () => {
   // Suppliers list from global store for dropdowns (decoupled from existing trucks)
   const { suppliers: supplierList, fetchSuppliers } = useSupplierStore();
   const supplierNames = supplierList.map((s) => s.name);
+
+  // Drivers state
+  const [drivers, setDrivers] = useState<Array<{ id: string; name: string }>>(
+    []
+  );
+
   // Filter options are sourced from global suppliers and backend types
 
   // Enhanced filtering logic
@@ -243,6 +252,55 @@ const DeliveriesPage: React.FC = () => {
     setSelectedDelivery(null);
   };
 
+  const handleCreatePayment = async (paymentData: {
+    supplierId: string;
+    supplierName: string;
+    paidAmount: number;
+    discount: number;
+    driverName: string;
+    id?: string; // Optional ID for updates
+  }) => {
+    try {
+      if (paymentData.id) {
+        // Update existing payment delivery
+        await deliveriesApi.updatePaymentDelivery(paymentData.id, {
+          supplierId: paymentData.supplierId,
+          supplierName: paymentData.supplierName,
+          paidAmount: paymentData.paidAmount,
+          discount: paymentData.discount,
+          driverName: paymentData.driverName,
+        });
+      } else {
+        // Create new payment delivery
+        await deliveriesApi.createPaymentDelivery({
+          supplierId: paymentData.supplierId,
+          supplierName: paymentData.supplierName,
+          paidAmount: paymentData.paidAmount,
+          discount: paymentData.discount,
+          driverName: paymentData.driverName,
+        });
+      }
+      // Refresh data from backend
+      await fetchDeliveries();
+    } catch (error) {
+      console.error("Error creating/updating payment delivery:", error);
+      alert(
+        paymentData.id
+          ? "فشل في تحديث الدفعة. يرجى المحاولة مرة أخرى."
+          : "فشل في تسجيل الدفعة. يرجى المحاولة مرة أخرى."
+      );
+      return;
+    }
+
+    setShowPaymentModal(false);
+    setSelectedDelivery(null);
+  };
+
+  const handleEditPayment = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
+    setShowPaymentModal(true);
+  };
+
   const handleUpdateCost = async (
     deliveryId: string,
     costData: { totalCost: number; amountPaid: number }
@@ -278,23 +336,6 @@ const DeliveriesPage: React.FC = () => {
       }
     }
   };
-
-  // Ensure types exist before opening Add modal
-  const openAddModal = useCallback(async () => {
-    try {
-      if (!types || types.length === 0) {
-        const latest = await deliveriesApi.getTypes();
-        setTypes(latest);
-        // Split types into base and subtypes
-        const { bases } = deliveriesApi.splitBaseAndSubtypes(latest);
-        setBaseTypeNames(bases.map((t) => t.name));
-      }
-    } catch (e) {
-      console.error("Failed to load types before opening modal", e);
-    } finally {
-      setShowAddModal(true);
-    }
-  }, [types]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -338,17 +379,34 @@ const DeliveriesPage: React.FC = () => {
     [selectedSupplier, selectedBaseType, selectedSubtype, dateFilter, dateRange]
   );
 
+  const fetchDrivers = useCallback(async () => {
+    try {
+      const employees = await employeeApi.getAll();
+      const driverList = employees.map((employee) => ({
+        id: employee.id,
+        name: employee.name,
+      }));
+      setDrivers(driverList);
+    } catch (error) {
+      console.error("Failed to fetch drivers:", error);
+    }
+  }, []);
+
   useEffect(() => {
     // initial data load: suppliers for modal, and current deliveries list
     const init = async () => {
       try {
-        await Promise.all([fetchSuppliers(), fetchDeliveries()]);
+        await Promise.all([
+          fetchSuppliers(),
+          fetchDeliveries(),
+          fetchDrivers(),
+        ]);
       } catch (e) {
         console.error(e);
       }
     };
     void init();
-  }, [fetchSuppliers, fetchDeliveries]);
+  }, [fetchSuppliers, fetchDeliveries, fetchDrivers]);
 
   const prevSelectedBaseTypeRef = useRef<string>("");
 
@@ -583,13 +641,15 @@ const DeliveriesPage: React.FC = () => {
                 إدارة ومتابعة جميع توصيلات الأسماك اليومية
               </p>
             </div>
-            <Button
-              onClick={() => void openAddModal()}
-              className="inline-flex items-center"
-            >
-              <Plus size={20} className="ml-2" />
-              إضافة توصيل جديد
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowPaymentModal(true)}
+                className="inline-flex items-center"
+                variant="outline"
+              >
+                تسجيل دفعة
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -627,6 +687,7 @@ const DeliveriesPage: React.FC = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onPriceDelivery={handlePriceDelivery}
+            onEditPayment={handleEditPayment}
           />
         </div>
 
@@ -727,6 +788,27 @@ const DeliveriesPage: React.FC = () => {
               setSelectedDelivery(null);
             }
           }}
+        />
+
+        <CreatePaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSave={handleCreatePayment}
+          suppliers={supplierList}
+          drivers={drivers}
+          editingPayment={
+            selectedDelivery &&
+            (selectedDelivery.deliveryType === "payment" ||
+              selectedDelivery.isPayment)
+              ? {
+                  id: selectedDelivery.id,
+                  supplierName: selectedDelivery.supplierName,
+                  amountPaid: selectedDelivery.amountPaid,
+                  remainingAmount: selectedDelivery.remainingAmount,
+                  driverName: selectedDelivery.driverName,
+                }
+              : null
+          }
         />
       </div>
     </div>

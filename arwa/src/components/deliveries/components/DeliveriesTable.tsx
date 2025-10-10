@@ -16,6 +16,7 @@ interface DeliveriesTableProps {
   onEdit: (delivery: DeliveryUi) => void;
   onDelete: (delivery: DeliveryUi) => void;
   onPriceDelivery: (delivery: DeliveryUi) => void;
+  onEditPayment?: (delivery: DeliveryUi) => void;
 }
 
 export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
@@ -25,6 +26,7 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
   onEdit,
   onDelete,
   onPriceDelivery,
+  onEditPayment,
 }) => {
   const isAdmin = userRole === "admin" || userRole === "owner";
   const isOwner = userRole === "owner";
@@ -121,15 +123,17 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                             <Eye size={16} className="text-gray-500" />
                           </button>
                         )}
-                        {isOwner && (
-                          <button
-                            onClick={() => onPriceDelivery(delivery)}
-                            className="p-2 hover:bg-gray-100 rounded-full"
-                            title="تسعير التوصيل"
-                          >
-                            <DollarSign size={16} className="text-gray-500" />
-                          </button>
-                        )}
+                        {isOwner &&
+                          delivery.deliveryType !== "payment" &&
+                          !delivery.isPayment && (
+                            <button
+                              onClick={() => onPriceDelivery(delivery)}
+                              className="p-2 hover:bg-gray-100 rounded-full"
+                              title="تسعير التوصيل"
+                            >
+                              <DollarSign size={16} className="text-gray-500" />
+                            </button>
+                          )}
                         <button
                           onClick={() => toggleDropdown(delivery.id)}
                           className="p-2 hover:bg-gray-100 rounded-full"
@@ -160,18 +164,35 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                                 تفاصيل التوصيل
                               </button>
                             )}
-                            {isAdmin && (
-                              <button
-                                onClick={() => {
-                                  onEdit(delivery);
-                                  setOpenDropdown(null);
-                                }}
-                                className="flex items-center w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                <Edit size={16} className="ml-2" />
-                                تعديل التوصيل
-                              </button>
-                            )}
+                            {isAdmin &&
+                              delivery.deliveryType !== "payment" &&
+                              !delivery.isPayment && (
+                                <button
+                                  onClick={() => {
+                                    onEdit(delivery);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="flex items-center w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  <Edit size={16} className="ml-2" />
+                                  تعديل التوصيل
+                                </button>
+                              )}
+                            {isAdmin &&
+                              (delivery.deliveryType === "payment" ||
+                                delivery.isPayment) &&
+                              onEditPayment && (
+                                <button
+                                  onClick={() => {
+                                    onEditPayment(delivery);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="flex items-center w-full text-right px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+                                >
+                                  <Edit size={16} className="ml-2" />
+                                  تعديل الدفعة
+                                </button>
+                              )}
                             {isAdmin && (
                               <button
                                 onClick={() => {
@@ -190,8 +211,16 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                     </div>
                   </div>
 
-                  {/* Stats Grid */}
+                  {/* Stats Grid - 3x2 layout similar to orders */}
                   <div className="mt-2 grid grid-cols-3 gap-2">
+                    <div className="bg-red-50 border border-red-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-red-600">
+                        الدين المتبقي
+                      </div>
+                      <div className="text-sm font-semibold text-red-700">
+                        {formatMoney(delivery.remainingAmount || 0)}
+                      </div>
+                    </div>
                     <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
                       <div className="text-[11px] text-gray-600">
                         إجمالي السعر
@@ -200,36 +229,44 @@ export const DeliveriesTable: React.FC<DeliveriesTableProps> = ({
                         {formatMoney(total || delivery.totalCost)}
                       </div>
                     </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-                      <div className="text-[11px] text-gray-600">
-                        إجمالي الوزن
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {Number(delivery.totalWeight || 0)} كجم
+                    <div className="bg-green-50 border border-green-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-green-600">المدفوع</div>
+                      <div className="text-sm font-semibold text-green-700">
+                        {formatMoney(delivery.amountPaid || 0)}
                       </div>
                     </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded p-2 text-center">
-                      <div className="text-[11px] text-gray-600">
+                    <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-blue-600">
                         حالة الدفع
                       </div>
                       <div className="text-xs font-medium">
                         {delivery.paymentStatus === "paid" ? (
-                          <span className="inline-block px-2 py-0.5 rounded bg-green-100 text-green-700">
-                            مدفوع
-                          </span>
+                          <span className="text-green-700">مدفوع</span>
                         ) : delivery.paymentStatus === "partial" ? (
-                          <span className="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-700">
-                            مدفوع جزئي
-                          </span>
+                          <span className="text-amber-700">مدفوع جزئي</span>
                         ) : delivery.paymentStatus === "unpaid" ? (
-                          <span className="inline-block px-2 py-0.5 rounded bg-red-100 text-red-700">
-                            غير مدفوع
-                          </span>
+                          <span className="text-red-700">غير مدفوع</span>
                         ) : (
-                          <span className="inline-block px-2 py-0.5 rounded bg-gray-100 text-gray-600">
-                            غير متوفر
-                          </span>
+                          <span className="text-gray-600">غير متوفر</span>
                         )}
+                      </div>
+                    </div>
+                    <div className="bg-orange-50 border border-orange-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-orange-600">
+                        آخر تحديث
+                      </div>
+                      <div className="text-xs font-semibold text-orange-700">
+                        {delivery.lastEditTime
+                          ? formatRelativeDate(delivery.lastEditTime)
+                          : "غير محدد"}
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded p-2 text-center">
+                      <div className="text-[11px] text-purple-600">
+                        إجمالي الوزن
+                      </div>
+                      <div className="text-sm font-semibold text-purple-700">
+                        {Number(delivery.totalWeight || 0)} كجم
                       </div>
                     </div>
                   </div>

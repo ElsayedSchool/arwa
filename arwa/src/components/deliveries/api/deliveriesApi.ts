@@ -59,6 +59,8 @@ export interface DeliveryUi {
   amountPaid: number;
   remainingAmount: number;
   fishTypes: FishTypeUi[];
+  deliveryType?: string; // "delivery" | "payment"
+  isPayment?: boolean;
 }
 
 const toDateParts = (iso: string) => {
@@ -237,6 +239,31 @@ export const deliveriesApi = {
 
   async createDelivery(payload: CreateDeliveryPayload): Promise<DeliveryDto> {
     const { data } = await api.post("/delivery", payload);
+    return data;
+  },
+
+  async createPaymentDelivery(payload: {
+    supplierId: string;
+    supplierName: string;
+    paidAmount: number;
+    discount: number;
+    driverName: string;
+  }): Promise<DeliveryDto> {
+    const { data } = await api.post("/delivery/payment", payload);
+    return data;
+  },
+
+  async updatePaymentDelivery(
+    id: string,
+    payload: {
+      supplierId: string;
+      supplierName: string;
+      paidAmount: number;
+      discount: number;
+      driverName: string;
+    }
+  ): Promise<DeliveryDto> {
+    const { data } = await api.put(`/delivery/payment/${id}`, payload);
     return data;
   },
 

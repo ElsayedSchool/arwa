@@ -14,11 +14,11 @@ export class CachingService {
   ) {
     this.redisClient = createClient({
       password: this.configSer.get("REDIS_PASS"),
-      url: this.configSer.get("REDIS_URL"),
+      url: `redis://localhost:6379`,
     });
     this.redisSub = createClient({
       password: this.configSer.get("REDIS_PASS"),
-      url: this.configSer.get("REDIS_URL"),
+      url: `redis://localhost:6379`,
     });
     this.redisClient.connect();
     this.redisSub.connect();

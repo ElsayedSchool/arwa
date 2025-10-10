@@ -14,9 +14,13 @@ import { GetByIdDeliveryHandler } from "./Queries/getByIdDelivery.Handler";
 import { UpsertDeliveryHandler } from "./Commands/upsertDelivery.Handler";
 import { UpdateDeliveryItemRestAmountsHandler } from "./Commands/updateDeliveryItemRestAmounts.Handler";
 import { DeleteDeliveryHandler } from "./Commands/deleteDelivery.Handler";
+import { CreatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
+import { UpdatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
 import { UpsertDeliveryCommand } from "./Commands/upsertDelivery.Command";
 import { UpdateDeliveryItemRestAmountsCommand } from "./Commands/updateDeliveryItemRestAmounts.Command";
 import { DeleteDeliveryCommand } from "./Commands/deleteDelivery.Command";
+import { CreatePaymentDeliveryCommand } from "./Commands/createPaymentDelivery.Command";
+import { UpdatePaymentDeliveryCommand } from "./Commands/createPaymentDelivery.Command";
 
 @Controller("delivery")
 export class DeliveryController {
@@ -26,7 +30,9 @@ export class DeliveryController {
     private readonly getById: GetByIdDeliveryHandler,
     private readonly upsert: UpsertDeliveryHandler,
     private readonly updateRestAmounts: UpdateDeliveryItemRestAmountsHandler,
-    private readonly del: DeleteDeliveryHandler
+    private readonly del: DeleteDeliveryHandler,
+    private readonly createPayment: CreatePaymentDeliveryHandler,
+    private readonly updatePayment: UpdatePaymentDeliveryHandler
   ) {}
 
   @Get()
@@ -55,6 +61,52 @@ export class DeliveryController {
   @Post()
   async upsertOne(@Body() body: any) {
     return this.upsert.execute(new UpsertDeliveryCommand(body));
+  }
+
+  @Post("payment")
+  async createPaymentDelivery(
+    @Body()
+    body: {
+      supplierId: string;
+      supplierName: string;
+      paidAmount: number;
+      discount: number;
+      driverName: string;
+    }
+  ) {
+    return this.createPayment.execute(
+      new CreatePaymentDeliveryCommand(
+        body.supplierId,
+        body.supplierName,
+        body.paidAmount,
+        body.discount,
+        body.driverName
+      )
+    );
+  }
+
+  @Put("payment/:id")
+  async updatePaymentDelivery(
+    @Param("id") id: string,
+    @Body()
+    body: {
+      supplierId: string;
+      supplierName: string;
+      paidAmount: number;
+      discount: number;
+      driverName: string;
+    }
+  ) {
+    return this.updatePayment.execute(
+      new UpdatePaymentDeliveryCommand(
+        id,
+        body.supplierId,
+        body.supplierName,
+        body.paidAmount,
+        body.discount,
+        body.driverName
+      )
+    );
   }
 
   @Put(":id/rest-amounts")

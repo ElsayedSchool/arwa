@@ -94,6 +94,7 @@ export class GetAllDeliveriesForStaffHandler {
           (sum, item) => sum + Number(item.amount),
           0
         ) || 0,
+      isPayment: delivery.isPayment,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
           id: item.id,

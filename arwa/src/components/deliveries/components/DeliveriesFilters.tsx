@@ -101,6 +101,7 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
           value={selectedBaseType}
           onChange={(e) => onSelectedBaseTypeChange(e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          style={{ display: "none" }}
         >
           <option value="">جميع الأنواع الأساسية</option>
           {baseTypeNames.map((baseType) => (
@@ -116,6 +117,7 @@ export const DeliveriesFilters: React.FC<DeliveriesFiltersProps> = ({
           onChange={(e) => onSelectedSubtypeChange(e.target.value)}
           disabled={!selectedBaseType}
           className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          style={{ display: "none" }}
         >
           <option value="">
             {selectedBaseType ? "جميع الأنواع الفرعية" : "اختر نوع أساسي أولاً"}

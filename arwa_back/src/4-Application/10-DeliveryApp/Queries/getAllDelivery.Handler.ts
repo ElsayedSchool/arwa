@@ -102,6 +102,7 @@ export class GetAllDeliveryHandler {
       totalCost: delivery.totalDeliveryPrice,
       amountPaid: delivery.totalPaidDelivery,
       remainingAmount: delivery.totalDebt,
+      isPayment: delivery.isPayment,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
           id: item.id,

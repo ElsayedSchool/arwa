@@ -6,6 +6,8 @@ import { GetByIdDeliveryHandler } from "./Queries/getByIdDelivery.Handler";
 import { UpsertDeliveryHandler } from "./Commands/upsertDelivery.Handler";
 import { UpdateDeliveryItemRestAmountsHandler } from "./Commands/updateDeliveryItemRestAmounts.Handler";
 import { DeleteDeliveryHandler } from "./Commands/deleteDelivery.Handler";
+import { CreatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
+import { UpdatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
 import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.module";
 
 @Module({
@@ -18,6 +20,8 @@ import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.m
     UpsertDeliveryHandler,
     UpdateDeliveryItemRestAmountsHandler,
     DeleteDeliveryHandler,
+    CreatePaymentDeliveryHandler,
+    UpdatePaymentDeliveryHandler,
   ],
   exports: [
     GetAllDeliveryHandler,
@@ -26,6 +30,8 @@ import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.m
     UpsertDeliveryHandler,
     UpdateDeliveryItemRestAmountsHandler,
     DeleteDeliveryHandler,
+    CreatePaymentDeliveryHandler,
+    UpdatePaymentDeliveryHandler,
   ],
 })
 export class DeliveryModule {}
