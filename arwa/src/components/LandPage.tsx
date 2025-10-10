@@ -78,10 +78,10 @@ const LandPage: React.FC = () => {
                 <div className="flex items-center mb-3">
                   <BarChart3 className="h-8 w-8 text-orange-600 group-hover:text-orange-700" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    جرد نهاية اليوم
+                    إدارة المخزون
                   </h3>
                 </div>
-                <p className="text-gray-600">جرد المخزون نهاية كل يوم</p>
+                <p className="text-gray-600">إدارة ومراقبة المخزون والجرد</p>
               </button>
 
               <button

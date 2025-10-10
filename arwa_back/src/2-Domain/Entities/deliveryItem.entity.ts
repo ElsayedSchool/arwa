@@ -47,6 +47,15 @@ export class DeliveryItem extends BaseDelete {
   @Column({ type: "decimal", default: 0 })
   totalPrice: number;
 
+  @Column({ type: "decimal", default: 0 })
+  soldAmount: number;
+
+  @Column({ type: "decimal", default: 0 })
+  restAmount: number;
+
+  @Column({ type: "decimal", default: 0 })
+  stock: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

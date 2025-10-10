@@ -43,6 +43,12 @@ export class Supplier extends BaseDelete {
   @Column({ type: "decimal", default: 0 })
   totalDue: number;
 
+  @Column({ type: "boolean", default: false, name: "is_owner" })
+  isOwner: boolean;
+
+  @Column({ type: "boolean", default: false, name: "is_stock" })
+  isStock: boolean;
+
   @UpdateDateColumn()
   lastUpdated: Date;
 

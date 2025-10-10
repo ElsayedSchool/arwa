@@ -1,4 +1,19 @@
 // Orders API utilities and types
+export interface Customer {
+  id: string;
+  name: string;
+  nickname: string | null;
+  phoneNumber: string;
+  totalTransaction: number;
+  totalPaid: number;
+  totalDue: number;
+  viewOrder: number;
+  lastUpdated: string;
+  createdAt: string;
+  orders: Order[];
+  deletedBy: string | null;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -31,21 +46,6 @@ export interface OrderItem {
   totalAmount?: number;
   totalPrice?: number;
   date: string;
-}
-
-export interface Customer {
-  id: string;
-  name: string;
-  nickname: string | null;
-  phoneNumber: string;
-  totalTransaction: number;
-  totalPaid: number;
-  totalDue: number;
-  viewOrder: number;
-  lastUpdated: string;
-  createdAt: string;
-  orders: Order[];
-  deletedBy: string | null;
 }
 
 export interface FishItem {

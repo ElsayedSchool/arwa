@@ -37,16 +37,15 @@ export interface DeliveryItemDto {
 
 export type PaymentStatus = "paid" | "unpaid" | "partial";
 
-export interface FishTypeUi {
+export interface InventoryFishTypeUi {
   id?: string;
   type: string; // type name
   quantity: number;
   unit: string;
   weight: number;
-  pricePerKg: number;
 }
 
-export interface DeliveryUi {
+export interface InventoryDeliveryUi {
   id: string;
   supplierName: string;
   driverName: string;
@@ -54,11 +53,7 @@ export interface DeliveryUi {
   deliveryTime: string; // HH:mm
   lastEditTime: string | null; // ISO or null
   totalWeight: number;
-  paymentStatus: PaymentStatus;
-  totalCost: number;
-  amountPaid: number;
-  remainingAmount: number;
-  fishTypes: FishTypeUi[];
+  fishTypes: InventoryFishTypeUi[];
 }
 
 const toDateParts = (iso: string) => {
@@ -70,15 +65,7 @@ const toDateParts = (iso: string) => {
   };
 };
 
-const computePaymentStatus = (total: number, paid: number): PaymentStatus => {
-  if (!total || total <= 0) return "unpaid";
-  if (!paid || paid <= 0) return "unpaid";
-  if (paid >= total) return "paid";
-  return "partial";
-};
-
 export interface CreateDeliveryPayload {
-  id?: string; // Optional for updates
   supplierId?: string;
   supplierName: string;
   driverName: string;
@@ -147,15 +134,61 @@ export const deliveriesApi = {
     return result;
   },
 
-  async getDeliveries(filters?: {
+  async getInventory(filters?: {
     supplierName?: string;
+    phone?: string;
+    baseType?: string;
+    subType?: string;
     dateFilter?: string;
     from?: string;
     to?: string;
-    fishType?: string;
-  }): Promise<DeliveryUi[]> {
-    const { data } = await api.get("/delivery", { params: filters });
+  }): Promise<InventoryDeliveryUi[]> {
+    const { data } = await api.get("/delivery/inventory", { params: filters });
     return Array.isArray(data) ? data : data?.items ?? [];
+  },
+
+  async createInventory(payload: {
+    supplierName: string;
+    driverName: string;
+    deliveryDate: string;
+    deliveryTime: string;
+    fishTypes: InventoryFishTypeUi[];
+  }): Promise<InventoryDeliveryUi> {
+    const { data } = await api.post("/delivery", payload);
+    return data;
+  },
+
+  async updateRestAmounts(
+    deliveryId: string,
+    itemUpdates: Array<{ deliveryItemId: string; restAmount: number }>
+  ): Promise<{
+    success: boolean;
+    message: string;
+    deliveryId: string;
+    updatedItems: number;
+  }> {
+    const { data } = await api.put(`/delivery/${deliveryId}/rest-amounts`, {
+      itemUpdates,
+    });
+    return data;
+  },
+
+  async updateDelivery(
+    deliveryId: string,
+    payload: {
+      supplierName: string;
+      driverName: string;
+      deliveryDate: string;
+      deliveryTime: string;
+      fishTypes: InventoryFishTypeUi[];
+    }
+  ): Promise<InventoryDeliveryUi> {
+    // Use POST /delivery for upsert (create/update) since backend doesn't have PUT /delivery/:id
+    const { data } = await api.post("/delivery", {
+      ...payload,
+      id: deliveryId,
+    });
+    return data;
   },
 
   async getDeliveryItems(): Promise<DeliveryItemDto[]> {
@@ -271,7 +304,7 @@ export const deliveriesApi = {
     deliveries: DeliveryDto[],
     items: DeliveryItemDto[],
     types: CategoryDto[]
-  ): DeliveryUi[] {
+  ): InventoryDeliveryUi[] {
     const typeById = new Map(types.map((t) => [t.id, t] as const));
     const itemsByTruck = new Map<string, DeliveryItemDto[]>();
     for (const it of items) {
@@ -282,21 +315,19 @@ export const deliveriesApi = {
     }
     return deliveries.map((t) => {
       const its = itemsByTruck.get(t.id) || [];
-      const fishTypes: FishTypeUi[] = its.map((it) => ({
+      const fishTypes: InventoryFishTypeUi[] = its.map((it) => ({
         type: it.typeId
           ? typeById.get(it.typeId)?.name || "غير معروف"
           : "غير معروف",
         quantity: it.amount || 0,
         unit: "kg",
         weight: it.amount || 0,
-        pricePerKg: 0, // Backend doesn't track per-item price yet
       }));
       const totalWeight = fishTypes.reduce(
         (sum, f) => sum + (f.weight || 0),
         0
       );
       const parts = toDateParts(t.deliveryDate);
-      const status = computePaymentStatus(t.totalPrice || 0, t.totalPaid || 0);
       return {
         id: t.id,
         supplierName: t.supplierName,
@@ -305,13 +336,8 @@ export const deliveriesApi = {
         deliveryTime: parts.time,
         lastEditTime: t.lastUpdated || null,
         totalWeight,
-        paymentStatus: status,
-        totalCost: t.totalPrice || 0,
-        amountPaid: t.totalPaid || 0,
-        remainingAmount:
-          t.totalDue || Math.max(0, (t.totalPrice || 0) - (t.totalPaid || 0)),
         fishTypes,
-      } as DeliveryUi;
+      } as InventoryDeliveryUi;
     });
   },
   splitBaseAndSubtypes(types: CategoryDto[]) {

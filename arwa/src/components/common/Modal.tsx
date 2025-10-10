@@ -26,13 +26,14 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" dir="rtl">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      dir="rtl"
+      onClick={onClose}
+    >
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div
-            className="absolute inset-0 bg-gray-500 opacity-75"
-            onClick={onClose}
-          ></div>
+          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
 
         <span
@@ -44,6 +45,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         <div
           className={`inline-block align-bottom bg-white rounded-lg text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full ${sizeClasses[size]}`}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-center justify-between mb-4">

@@ -11,7 +11,7 @@ interface DeliveryFilters {
 }
 
 @Injectable()
-export class GetAllDeliveryHandler {
+export class GetAllDeliveriesForStaffHandler {
   constructor(private readonly repo: DeliveryRepo) {}
   async handle(filters: DeliveryFilters = {}) {
     const qb = this.repo.getRaw().createQueryBuilder("d");
@@ -21,8 +21,9 @@ export class GetAllDeliveryHandler {
     qb.leftJoinAndSelect("di.type", "type");
     qb.leftJoin("type.mainCategory", "mainCategory");
 
-    // base: only not-deleted
+    // base: only not-deleted and non-payment deliveries (isPayment = false)
     qb.where("d.isDeleted = :isDeleted", { isDeleted: false });
+    qb.andWhere("d.isPayment = :isPayment", { isPayment: false });
 
     if (filters.supplierName) {
       qb.andWhere("d.supplierName ILIKE :supplierName", {
@@ -77,7 +78,7 @@ export class GetAllDeliveryHandler {
 
     const results = await qb.getMany();
 
-    // Transform to DeliveryUi format
+    // Transform to DeliveryUi format (without financial data)
     return results.map((delivery) => ({
       id: delivery.id,
       supplierName: delivery.supplierName,
@@ -93,22 +94,13 @@ export class GetAllDeliveryHandler {
           (sum, item) => sum + Number(item.amount),
           0
         ) || 0,
-      paymentStatus:
-        delivery.totalDebt === 0
-          ? "paid"
-          : delivery.totalPaidDelivery > 0
-            ? "partial"
-            : "unpaid",
-      totalCost: delivery.totalDeliveryPrice,
-      amountPaid: delivery.totalPaidDelivery,
-      remainingAmount: delivery.totalDebt,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
           id: item.id,
           type: item.type?.name || "",
           category: item.type?.mainCategory?.name || item.type?.name || "",
           weight: Number(item.amount),
-          pricePerKg: Number((item as any).pricePerKilo ?? 0),
+          // Removed: pricePerKg and other financial fields
         })) || [],
     }));
   }

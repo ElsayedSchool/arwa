@@ -34,6 +34,9 @@ export class Delivery extends BaseDelete {
   @Column({ length: 100 })
   supplierName: string;
 
+  @Column({ default: false })
+  isPayment: boolean;
+
   @Column({ length: 100, nullable: true })
   driverName: string;
 
@@ -55,13 +58,19 @@ export class Delivery extends BaseDelete {
   lastUpdated: Date;
 
   @Column({ type: "decimal", default: 0 })
-  totalPrice: number;
+  totalDeliveryPrice: number;
 
   @Column({ type: "decimal", default: 0 })
-  totalPaid: number;
+  totalDebt: number;
 
   @Column({ type: "decimal", default: 0 })
-  totalDue: number;
+  totalPaidDelivery: number;
+
+  @Column({ type: "decimal", default: 0 })
+  discount: number;
+
+  @Column({ type: "decimal", default: 0, name: "updated_debt" })
+  updatedDebt: number;
 
   @OneToMany(() => DeliveryItem, (di) => di.delivery)
   deliveryItems: DeliveryItem[];

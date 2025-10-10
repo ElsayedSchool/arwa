@@ -27,7 +27,4 @@ export class Inventory extends BaseDelete {
   @CreateDateColumn()
   date: Date;
   // soft-delete fields are inherited from BaseDelete
-
-  @Column({ nullable: true })
-  deletedBy: string | null;
 }

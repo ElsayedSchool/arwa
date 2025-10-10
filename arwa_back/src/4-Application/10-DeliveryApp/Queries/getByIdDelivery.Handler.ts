@@ -30,14 +30,14 @@ export class GetByIdDeliveryHandler {
           0
         ) || 0,
       paymentStatus:
-        delivery.totalDue === 0
+        delivery.totalDebt === 0
           ? "paid"
-          : delivery.totalPaid > 0
+          : delivery.totalPaidDelivery > 0
             ? "partial"
             : "unpaid",
-      totalCost: delivery.totalPrice,
-      amountPaid: delivery.totalPaid,
-      remainingAmount: delivery.totalDue,
+      totalCost: delivery.totalDeliveryPrice,
+      amountPaid: delivery.totalPaidDelivery,
+      remainingAmount: delivery.totalDebt,
       fishTypes:
         delivery.deliveryItems?.map((item) => ({
           type: item.type?.name || "",

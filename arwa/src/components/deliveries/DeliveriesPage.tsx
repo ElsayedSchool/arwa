@@ -209,14 +209,36 @@ const DeliveriesPage: React.FC = () => {
     }
   };
 
-  const handleUpdateDelivery = (updatedDelivery: Delivery) => {
-    setDeliveriesData((prev) =>
-      prev.map((delivery) =>
-        delivery.id === updatedDelivery.id
-          ? { ...updatedDelivery, lastEditTime: new Date().toISOString() }
-          : delivery
-      )
-    );
+  const handleUpdateDelivery = async (updatedDelivery: Delivery) => {
+    try {
+      // Find supplier ID for the update
+      const selectedSupplier = supplierList.find(
+        (s) => s.name === updatedDelivery.supplierName
+      );
+
+      // Call API to update delivery
+      await deliveriesApi.createDelivery({
+        id: updatedDelivery.id, // Include ID for update
+        supplierId: selectedSupplier?.id,
+        supplierName: updatedDelivery.supplierName,
+        driverName: updatedDelivery.driverName,
+        deliveryDate: updatedDelivery.deliveryDate,
+        deliveryTime: updatedDelivery.deliveryTime,
+        totalCost: updatedDelivery.totalCost,
+        amountPaid: updatedDelivery.amountPaid,
+        remainingAmount: updatedDelivery.remainingAmount,
+        paymentStatus: updatedDelivery.paymentStatus,
+        fishTypes: updatedDelivery.fishTypes,
+      });
+
+      // Refresh data from backend
+      await fetchDeliveries();
+    } catch (error) {
+      console.error("Error updating delivery:", error);
+      alert("فشل في تحديث التوصيل. يرجى المحاولة مرة أخرى.");
+      return;
+    }
+
     setShowEditModal(false);
     setSelectedDelivery(null);
   };
