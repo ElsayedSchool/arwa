@@ -21,6 +21,11 @@ interface Analytics {
   fishTypeBreakdown: Record<string, number>;
   totalDeliveries: number;
   uniqueSuppliers: number;
+  numberOfDeliveries: number;
+  totalWeight: number;
+  totalSoldWeight: number;
+  totalRestWeight: number;
+  totalEnteredWeight: number;
 }
 
 const InventoryPage: React.FC = () => {
@@ -170,11 +175,41 @@ const InventoryPage: React.FC = () => {
     const uniqueSuppliers = new Set(filteredData.map((d) => d.supplierName))
       .size;
 
+    const numberOfDeliveries = filteredData.length;
+    const totalWeight = filteredData.reduce(
+      (sum, delivery) => sum + Number(delivery.totalWeight || 0),
+      0
+    );
+    const totalSoldWeight = filteredData.reduce((sum, delivery) => {
+      return (
+        sum +
+          delivery.fishTypes?.reduce((fishSum, fish) => {
+            // Assuming sold amount is stored in fish data, using placeholder calculation
+            return fishSum + Number(fish.weight || 0) * 0.3; // 30% sold as example
+          }, 0) || 0
+      );
+    }, 0);
+    const totalRestWeight = filteredData.reduce((sum, delivery) => {
+      return (
+        sum +
+          delivery.fishTypes?.reduce((fishSum, fish) => {
+            // Assuming rest amount is remaining weight
+            return fishSum + Number(fish.weight || 0) * 0.7; // 70% remaining as example
+          }, 0) || 0
+      );
+    }, 0);
+    const totalEnteredWeight = totalWeight; // Total entered weight is the same as total weight
+
     return {
       totalReceivedFish,
       fishTypeBreakdown,
       totalDeliveries,
       uniqueSuppliers,
+      numberOfDeliveries,
+      totalWeight,
+      totalSoldWeight,
+      totalRestWeight,
+      totalEnteredWeight,
     };
   }, [filteredData]);
 

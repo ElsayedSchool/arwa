@@ -1,11 +1,16 @@
 import React from "react";
-import { Truck, Package, Users } from "lucide-react";
+import { Truck, Package, TrendingUp, Scale, ShoppingCart } from "lucide-react";
 
 interface Analytics {
   totalReceivedFish: number;
   fishTypeBreakdown: Record<string, number>;
   totalDeliveries: number;
   uniqueSuppliers: number;
+  numberOfDeliveries: number;
+  totalWeight: number;
+  totalSoldWeight: number;
+  totalRestWeight: number;
+  totalEnteredWeight: number;
 }
 
 interface InventoryAnalyticsProps {
@@ -18,18 +23,16 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({
   return (
     <>
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
               <Truck className="h-6 w-6 text-blue-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">
-                إجمالي التوصيلات
-              </p>
+              <p className="text-sm font-medium text-gray-600">عدد التوصيلات</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.totalDeliveries}
+                {analytics.numberOfDeliveries}
               </p>
             </div>
           </div>
@@ -41,11 +44,9 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({
               <Package className="h-6 w-6 text-green-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">
-                إجمالي الأسماك المستلمة
-              </p>
+              <p className="text-sm font-medium text-gray-600">إجمالي الوزن</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.totalReceivedFish.toFixed(1)} كجم
+                {analytics.totalWeight.toFixed(1)} كجم
               </p>
             </div>
           </div>
@@ -54,12 +55,40 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-purple-100">
-              <Users className="h-6 w-6 text-purple-600" />
+              <ShoppingCart className="h-6 w-6 text-purple-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">عدد الموردين</p>
+              <p className="text-sm font-medium text-gray-600">الوزن المباع</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.uniqueSuppliers}
+                {analytics.totalSoldWeight.toFixed(1)} كجم
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-orange-100">
+              <Scale className="h-6 w-6 text-orange-600" />
+            </div>
+            <div className="mr-4">
+              <p className="text-sm font-medium text-gray-600">الوزن المتبقي</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {analytics.totalRestWeight.toFixed(1)} كجم
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-indigo-100">
+              <TrendingUp className="h-6 w-6 text-indigo-600" />
+            </div>
+            <div className="mr-4">
+              <p className="text-sm font-medium text-gray-600">الوزن المدخل</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {analytics.totalEnteredWeight.toFixed(1)} كجم
               </p>
             </div>
           </div>

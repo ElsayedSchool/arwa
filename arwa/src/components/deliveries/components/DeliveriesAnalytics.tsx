@@ -1,11 +1,22 @@
 import React from "react";
-import { Truck, Package, Users } from "lucide-react";
+import {
+  Truck,
+  DollarSign,
+  AlertCircle,
+  CreditCard,
+  TrendingUp,
+} from "lucide-react";
 
 interface Analytics {
   totalReceivedFish: number;
   fishTypeBreakdown: Record<string, number>;
   totalDeliveries: number;
   uniqueSuppliers: number;
+  numberOfDeliveries: number;
+  totalUnpriced: number;
+  totalDeliveriesPrice: number;
+  totalPaidDeliveries: number;
+  totalUpdatedDebt: number;
 }
 
 interface DeliveriesAnalyticsProps {
@@ -18,18 +29,30 @@ export const DeliveriesAnalytics: React.FC<DeliveriesAnalyticsProps> = ({
   return (
     <>
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
               <Truck className="h-6 w-6 text-blue-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">
-                إجمالي التوصيلات
-              </p>
+              <p className="text-sm font-medium text-gray-600">عدد التوصيلات</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.totalDeliveries}
+                {analytics.numberOfDeliveries}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-orange-100">
+              <AlertCircle className="h-6 w-6 text-orange-600" />
+            </div>
+            <div className="mr-4">
+              <p className="text-sm font-medium text-gray-600">غير مسعرة</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {analytics.totalUnpriced}
               </p>
             </div>
           </div>
@@ -38,14 +61,12 @@ export const DeliveriesAnalytics: React.FC<DeliveriesAnalyticsProps> = ({
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100">
-              <Package className="h-6 w-6 text-green-600" />
+              <DollarSign className="h-6 w-6 text-green-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">
-                إجمالي الأسماك المستلمة
-              </p>
+              <p className="text-sm font-medium text-gray-600">اجمالى السعر</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.totalReceivedFish.toFixed(1)} كجم
+                {analytics.totalDeliveriesPrice.toLocaleString()} ج.م
               </p>
             </div>
           </div>
@@ -54,12 +75,28 @@ export const DeliveriesAnalytics: React.FC<DeliveriesAnalyticsProps> = ({
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-purple-100">
-              <Users className="h-6 w-6 text-purple-600" />
+              <CreditCard className="h-6 w-6 text-purple-600" />
             </div>
             <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">عدد الموردين</p>
+              <p className="text-sm font-medium text-gray-600">المدفوعات</p>
               <p className="text-2xl font-bold text-gray-900">
-                {analytics.uniqueSuppliers}
+                {analytics.totalPaidDeliveries.toLocaleString()} ج.م
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-red-100">
+              <TrendingUp className="h-6 w-6 text-red-600" />
+            </div>
+            <div className="mr-4">
+              <p className="text-sm font-medium text-gray-600">
+                إجمالي المتبقى
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {analytics.totalUpdatedDebt.toLocaleString()} ج.م
               </p>
             </div>
           </div>

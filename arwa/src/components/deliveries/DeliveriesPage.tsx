@@ -38,6 +38,11 @@ interface Analytics {
   fishTypeBreakdown: Record<string, number>;
   totalDeliveries: number;
   uniqueSuppliers: number;
+  numberOfDeliveries: number;
+  totalUnpriced: number;
+  totalDeliveriesPrice: number;
+  totalPaidDeliveries: number;
+  totalUpdatedDebt: number;
 }
 
 const initialDeliveriesData: Delivery[] = [];
@@ -159,11 +164,34 @@ const DeliveriesPage: React.FC = () => {
     const uniqueSuppliers = new Set(filteredData.map((d) => d.supplierName))
       .size;
 
+    const numberOfDeliveries = filteredData.length;
+    const totalUnpriced = filteredData.filter(
+      (delivery) =>
+        !delivery.fishTypes ||
+        delivery.fishTypes.some(
+          (fish) => !fish.pricePerKg || fish.pricePerKg === 0
+        )
+    ).length;
+    const totalDeliveriesPrice = filteredData.reduce(
+      (sum, delivery) => sum + Number(delivery.totalCost || 0),
+      0
+    );
+    const totalPaidDeliveries = filteredData.reduce(
+      (sum, delivery) => sum + Number(delivery.amountPaid || 0),
+      0
+    );
+    const totalUpdatedDebt = totalDeliveriesPrice - totalPaidDeliveries;
+
     return {
       totalReceivedFish,
       fishTypeBreakdown,
       totalDeliveries,
       uniqueSuppliers,
+      numberOfDeliveries,
+      totalUnpriced,
+      totalDeliveriesPrice,
+      totalPaidDeliveries,
+      totalUpdatedDebt,
     };
   }, [filteredData]);
 
