@@ -109,13 +109,15 @@ const SuppliersTable: React.FC<SuppliersTableProps> = ({
                     >
                       <Edit className="h-4 w-4" />
                     </button>
-                    <button
-                      onClick={() => onDelete(s.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="حذف"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {!(s.isStock || s.isOwner) && (
+                      <button
+                        onClick={() => onDelete(s.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="حذف"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

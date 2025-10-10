@@ -9,6 +9,8 @@ export interface Supplier {
   totalMoney: number;
   totalPaid: number;
   totalDue: number;
+  isOwner?: boolean;
+  isStock?: boolean;
   lastUpdated: string; // ISO string
   joinDate: string; // ISO string (maps from backend JoinDate)
   deletedBy: string | null;
