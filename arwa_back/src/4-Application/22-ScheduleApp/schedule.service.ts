@@ -4,6 +4,7 @@ import {
   OnApplicationShutdown,
 } from "@nestjs/common";
 import { CronJob } from "cron";
+import { UpdateStockService } from "./updateStock/updateStock.Service";
 
 @Injectable()
 export class ScheduleService
@@ -14,7 +15,7 @@ export class ScheduleService
   dailySchedule: CronJob = null;
   weeklySchedule: CronJob = null;
 
-  constructor() {}
+  constructor(private updateStockService: UpdateStockService) {}
   onApplicationBootstrap(): void {
     /* this.matchesSchedule = new CronJob(
       '0,15,30,45 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 * * *',
@@ -31,14 +32,14 @@ export class ScheduleService
       true
     );
     // Perform startup operations here
-    /* this.dailySchedule = new CronJob(
-      '0 1,2,4,6 * * *',
+    this.dailySchedule = new CronJob(
+      "0 20 * * *", // Run at 8:00 PM every day
       async () => {
         await this.startDailySchedule();
       },
       null,
-      true,
-    ); */
+      true
+    );
     // weekly schedule
     /* this.weeklySchedule = new CronJob(
       '0 1,3,5,7 * * 5',
@@ -59,7 +60,9 @@ export class ScheduleService
     await this.completeChallenge.handle(); */
   }
 
-  async startDailySchedule() {}
+  async startDailySchedule() {
+    await this.updateStockService.updateStockAtEndOfDay();
+  }
 
   onApplicationShutdown(): void {
     this.matchesSchedule?.stop();
