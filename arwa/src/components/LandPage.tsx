@@ -8,6 +8,9 @@ import {
   Star,
   DollarSign,
   Grid3X3,
+  Truck,
+  FishIcon,
+  TruckIcon,
 } from "lucide-react";
 
 const LandPage: React.FC = () => {
@@ -33,16 +36,16 @@ const LandPage: React.FC = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <button
-                onClick={() => navigate("/dashboard/deliveries")}
+                onClick={() => navigate("/dashboard/inventory")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <Package className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
+                  <Truck className="h-8 w-8 text-green-600 group-hover:text-green-70" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    تسجيل توريد جديد
+                    تسجيل الوارد
                   </h3>
                 </div>
-                <p className="text-gray-600">إدارة المخزون وعمليات التوصيل</p>
+                <p className="text-gray-600">تسجيل واردات المزارع والمتبقى</p>
               </button>
 
               <button
@@ -52,41 +55,42 @@ const LandPage: React.FC = () => {
                 <div className="flex items-center mb-3">
                   <ShoppingCart className="h-8 w-8 text-green-600 group-hover:text-green-700" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    إنشاء طلب للعميل
+                    تسجيل الطلبات
                   </h3>
                 </div>
                 <p className="text-gray-600">إدارة وإضافة طلبات العملاء</p>
               </button>
 
               <button
-                onClick={() => navigate("/dashboard/customer-payments")}
+                onClick={() => navigate("/dashboard/inventory-movement")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <DollarSign className="h-8 w-8 text-emerald-600 group-hover:text-emerald-700" />
+                  <Package className="h-8 w-8 text-green-600 group-hover:text-green-70" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    مدفوعات العملاء
+                    متابعه المبيت
                   </h3>
                 </div>
-                <p className="text-gray-600">إدارة مدفوعات العملاء</p>
+                <p className="text-gray-600">عرض مبيت السمك بعد الجرد</p>
               </button>
 
               <button
-                onClick={() => navigate("/dashboard/inventory")}
+                onClick={() => navigate("/dashboard/expenses")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <BarChart3 className="h-8 w-8 text-orange-600 group-hover:text-orange-700" />
+                  <DollarSign className="h-8 w-8 text-green-600 group-hover:text-green-70" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    إدارة المخزون
+                    المصروفات
                   </h3>
                 </div>
-                <p className="text-gray-600">إدارة ومراقبة المخزون والجرد</p>
+                <p className="text-gray-600">إدارة المصروفات والنفقات</p>
               </button>
 
               <button
                 onClick={() => navigate("/dashboard/reviews")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+                style={{ display: "none" }}
               >
                 <div className="flex items-center mb-3">
                   <Star className="h-8 w-8 text-yellow-600 group-hover:text-yellow-700" />
@@ -100,6 +104,7 @@ const LandPage: React.FC = () => {
               <button
                 onClick={() => navigate("/dashboard/pricing")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+                style={{ display: "none" }}
               >
                 <div className="flex items-center mb-3">
                   <DollarSign className="h-8 w-8 text-yellow-600 group-hover:text-yellow-700" />
@@ -108,6 +113,100 @@ const LandPage: React.FC = () => {
                   </h3>
                 </div>
                 <p className="text-gray-600">تحديد أسعار اليوم</p>
+              </button>
+            </div>
+          </div>
+
+          {/* التقارير والتحليلات */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-right border-b-2 border-red-500 pb-2">
+              اداره ومتابعة
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <button
+                onClick={() => navigate("/dashboard/deliveries")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <Package className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    تسعير ومراجعه الوردات
+                  </h3>
+                </div>
+                <p className="text-gray-600">
+                  تسعير وردات المزارع واضافه مدفوعات
+                </p>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/profits")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <DollarSign className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    أرباح يومية
+                  </h3>
+                </div>
+                <p className="text-gray-600">
+                  متابعة الأرباح والإيرادات اليومية
+                </p>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/period-profits")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <BarChart3 className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    أرباح الفترة
+                  </h3>
+                </div>
+                <p className="text-gray-600">تقارير أرباح الفترة المحددة</p>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/customer-debts")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+                style={{ display: "none" }}
+              >
+                <div className="flex items-center mb-3">
+                  <DollarSign className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    ديون ومدفوعات العملاء
+                  </h3>
+                </div>
+                <p className="text-gray-600">متابعة ديون العملاء ومدفوعاتهم</p>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/supplier-analysis")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+                style={{ display: "none" }}
+              >
+                <div className="flex items-center mb-3">
+                  <BarChart3 className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    تحليل الموردين
+                  </h3>
+                </div>
+                <p className="text-gray-600">
+                  تحليل أداء الموردين ومتابعة المخزون
+                </p>
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard/customer-payments")}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+              >
+                <div className="flex items-center mb-3">
+                  <DollarSign className="h-8 w-8 text-red-600 group-hover:text-red-700" />
+                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
+                    مدفوعات العملاء
+                  </h3>
+                </div>
+                <p className="text-gray-600">إدارة مدفوعات العملاء</p>
               </button>
             </div>
           </div>
@@ -136,14 +235,12 @@ const LandPage: React.FC = () => {
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <Package className="h-8 w-8 text-green-600 group-hover:text-green-700" />
+                  <TruckIcon className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
                     الموردون
                   </h3>
                 </div>
-                <p className="text-gray-600">
-                  قائمة الموردين والمعلومات الأساسية
-                </p>
+                <p className="text-gray-600">اضافه وتعديل الموردين</p>
               </button>
 
               <button
@@ -151,7 +248,7 @@ const LandPage: React.FC = () => {
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <Grid3X3 className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700" />
+                  <FishIcon className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
                     أنواع الأسماك
                   </h3>
@@ -164,7 +261,7 @@ const LandPage: React.FC = () => {
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
               >
                 <div className="flex items-center mb-3">
-                  <Users className="h-8 w-8 text-purple-600 group-hover:text-purple-700" />
+                  <Users className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
                   <h3 className="text-lg font-semibold text-gray-900 mr-3">
                     الموظفون والرواتب
                   </h3>
@@ -174,98 +271,8 @@ const LandPage: React.FC = () => {
             </div>
           </div>
 
-          {/* التقارير والتحليلات */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-right border-b-2 border-red-500 pb-2">
-              التقارير والتحليلات
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <button
-                onClick={() => navigate("/dashboard/period-profits")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <BarChart3 className="h-8 w-8 text-red-600 group-hover:text-red-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    أرباح الفترة
-                  </h3>
-                </div>
-                <p className="text-gray-600">تقارير أرباح الفترة المحددة</p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/profits")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <DollarSign className="h-8 w-8 text-emerald-600 group-hover:text-emerald-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    أرباح يومية
-                  </h3>
-                </div>
-                <p className="text-gray-600">
-                  متابعة الأرباح والإيرادات اليومية
-                </p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/customer-debts")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <DollarSign className="h-8 w-8 text-red-600 group-hover:text-red-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    ديون ومدفوعات العملاء
-                  </h3>
-                </div>
-                <p className="text-gray-600">متابعة ديون العملاء ومدفوعاتهم</p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/supplier-analysis")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <BarChart3 className="h-8 w-8 text-green-600 group-hover:text-green-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    تحليل الموردين
-                  </h3>
-                </div>
-                <p className="text-gray-600">
-                  تحليل أداء الموردين ومتابعة المخزون
-                </p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/expenses")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <DollarSign className="h-8 w-8 text-orange-600 group-hover:text-orange-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    المصروفات
-                  </h3>
-                </div>
-                <p className="text-gray-600">إدارة المصروفات والنفقات</p>
-              </button>
-
-              <button
-                onClick={() => navigate("/dashboard/inventory-movement")}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
-              >
-                <div className="flex items-center mb-3">
-                  <Package className="h-8 w-8 text-blue-600 group-hover:text-blue-700" />
-                  <h3 className="text-lg font-semibold text-gray-900 mr-3">
-                    حركة المخزون
-                  </h3>
-                </div>
-                <p className="text-gray-600">تتبع حركة المخزون والمبيعات</p>
-              </button>
-            </div>
-          </div>
-
           {/* الإعدادات وإدارة المستخدمين */}
-          <div>
+          <div style={{ display: "none" }}>
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-right border-b-2 border-purple-500 pb-2">
               الإعدادات وإدارة المستخدمين
             </h2>
@@ -273,6 +280,7 @@ const LandPage: React.FC = () => {
               <button
                 onClick={() => navigate("/dashboard/analytics")}
                 className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer text-right group"
+                style={{ display: "none" }}
               >
                 <div className="flex items-center mb-3">
                   <BarChart3 className="h-8 w-8 text-purple-600 group-hover:text-purple-700" />

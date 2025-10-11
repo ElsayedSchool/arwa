@@ -57,7 +57,7 @@ const ProfitsTable: React.FC<ProfitsTableProps> = ({
                 مصروفات
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                إيرادات الأسماك
+                تكلفة شراء الأسماك من المورد
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 إيرادات الطلبات
@@ -72,9 +72,6 @@ const ProfitsTable: React.FC<ProfitsTableProps> = ({
                 صافي الربح
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                هامش الربح
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الإجراءات
               </th>
             </tr>
@@ -82,10 +79,7 @@ const ProfitsTable: React.FC<ProfitsTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {profitsData.length === 0 ? (
               <tr>
-                <td
-                  colSpan={10}
-                  className="px-6 py-6 text-center text-gray-500"
-                >
+                <td colSpan={9} className="px-6 py-6 text-center text-gray-500">
                   لا توجد بيانات أرباح
                 </td>
               </tr>
@@ -95,10 +89,6 @@ const ProfitsTable: React.FC<ProfitsTableProps> = ({
                   profit.totalSoldFishPrice + profit.totalOrdersSoldRevenue;
                 const totalExpenses =
                   profit.totalSalaryExpenses + profit.totalNormalExpenses;
-                const profitMargin =
-                  totalRevenue > 0
-                    ? ((profit.netProfit / totalRevenue) * 100).toFixed(1)
-                    : "0.0";
 
                 return (
                   <tr key={profit.id} className="hover:bg-gray-50">
@@ -131,9 +121,6 @@ const ProfitsTable: React.FC<ProfitsTableProps> = ({
                       }`}
                     >
                       {formatCurrency(profit.netProfit)} ج.م
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {profitMargin}%
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {onCalculateProfit && (
