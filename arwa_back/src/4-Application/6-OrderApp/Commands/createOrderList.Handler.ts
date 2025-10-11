@@ -32,12 +32,31 @@ export class CreateOrderListHandler {
       // Get all active customers
       const customers = await this.customerRepo.findActive();
 
-      // Create an order for each customer
-      const orders = customers.map((customer) => ({
-        customerId: customer.id,
-        customerName: customer.name,
-        totalPrice: 0,
-      }));
+      // Create an order for each customer with totalDebt from their last order
+      const orders = await Promise.all(
+        customers.map(async (customer) => {
+          // Find the customer's last order (most recent)
+          const lastOrder = await this.repo
+            .getRaw()
+            .createQueryBuilder("order")
+            .where("order.isDeleted = :isDeleted", { isDeleted: false })
+            .andWhere("order.customerId = :customerId", {
+              customerId: customer.id,
+            })
+            .orderBy("order.createAt", "DESC")
+            .limit(1)
+            .getOne();
+
+          const totalDebt = lastOrder ? lastOrder.updatedDebt : 0;
+
+          return {
+            customerId: customer.id,
+            customerName: customer.name,
+            totalPrice: 0,
+            totalDebt: totalDebt,
+          };
+        })
+      );
 
       if (orders.length > 0) {
         await this.repo.getRaw().save(orders);
