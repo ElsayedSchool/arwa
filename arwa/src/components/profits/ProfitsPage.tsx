@@ -1,25 +1,156 @@
-import React, { useState } from "react";
-import { DollarSign, TrendingUp, Calendar } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
 import { TopNavigation } from "../common/TopNavigation";
+import { ProfitsFilters } from "./components/ProfitsFilters";
+import ProfitsAnalysis from "./components/ProfitsAnalysis";
+import ProfitsTable from "./components/ProfitsTable";
+import { dailyProfitApi } from "./api/dailyProfitApi";
+import type { DailyProfit } from "./api/dailyProfitApi";
 
-interface DailyProfit {
-  date: string;
-  revenue: number;
-  costs: number;
-  profit: number;
+interface DateRange {
+  from: string;
+  to: string;
 }
 
 const ProfitsPage: React.FC = () => {
-  const [dailyProfits] = useState<DailyProfit[]>([
-    { date: "2024-01-15", revenue: 2450, costs: 1800, profit: 650 },
-    { date: "2024-01-14", revenue: 3200, costs: 2100, profit: 1100 },
-    { date: "2024-01-13", revenue: 1800, costs: 1200, profit: 600 },
-    { date: "2024-01-12", revenue: 2900, costs: 2000, profit: 900 },
-    { date: "2024-01-11", revenue: 3500, costs: 2300, profit: 1200 },
-  ]);
+  const [profitsData, setProfitsData] = useState<DailyProfit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalProfit = dailyProfits.reduce((sum, day) => sum + day.profit, 0);
-  const avgDailyProfit = totalProfit / dailyProfits.length;
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
+
+  // Load initial data
+  useEffect(() => {
+    loadProfitsData();
+  }, []);
+
+  const loadProfitsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await dailyProfitApi.getAll();
+      setProfitsData(data);
+    } catch (err) {
+      setError("فشل في تحميل بيانات الأرباح");
+      console.error("Error loading profits data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter data based on current filters
+  const filteredProfits = useMemo(() => {
+    let filtered = [...profitsData];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (profit) =>
+          new Date(profit.profitDate)
+            .toLocaleDateString("ar-EG")
+            .includes(searchTerm) || profit.profitDate.includes(searchTerm)
+      );
+    }
+
+    // Date filter
+    const today = new Date();
+    filtered = filtered.filter((profit) => {
+      const profitDate = new Date(profit.profitDate);
+
+      if (dateFilter === "today") {
+        return profitDate.toDateString() === today.toDateString();
+      } else if (dateFilter === "week") {
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return profitDate >= weekAgo;
+      } else if (dateFilter === "month") {
+        return (
+          profitDate.getMonth() === today.getMonth() &&
+          profitDate.getFullYear() === today.getFullYear()
+        );
+      } else if (dateFilter === "range") {
+        if (dateRange.from && profitDate < new Date(dateRange.from))
+          return false;
+        if (dateRange.to && profitDate > new Date(dateRange.to)) return false;
+      }
+
+      return true;
+    });
+
+    return filtered;
+  }, [profitsData, searchTerm, dateFilter, dateRange]);
+
+  // Handle filter changes
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleDateFilterChange = (value: string) => {
+    setDateFilter(value);
+    if (value !== "range") {
+      setDateRange({ from: "", to: "" });
+    }
+  };
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setDateFilter("all");
+    setDateRange({ from: "", to: "" });
+  };
+
+  const handleExportData = () => {
+    // TODO: Implement export functionality
+    console.log("Export functionality to be implemented");
+  };
+
+  const handleCalculateProfit = async (date: string) => {
+    try {
+      await dailyProfitApi.calculateForDate(date);
+      // Reload data after calculation
+      await loadProfitsData();
+    } catch (err) {
+      console.error("Error calculating profit for date:", date, err);
+      setError("فشل في حساب الربح لهذا التاريخ");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen bg-gray-50 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">جاري تحميل البيانات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="min-h-screen bg-gray-50 flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-4">{error}</div>
+          <button
+            onClick={loadProfitsData}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -32,105 +163,26 @@ const ProfitsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <DollarSign className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  إجمالي الأرباح
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {totalProfit.toLocaleString()} ج.م
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Filters */}
+        <ProfitsFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={handleSearchTermChange}
+          dateFilter={dateFilter}
+          onDateFilterChange={handleDateFilterChange}
+          dateRange={dateRange}
+          onDateRangeChange={handleDateRangeChange}
+          onExportData={handleExportData}
+          onClearFilters={handleClearFilters}
+        />
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">
-                  متوسط الربح اليومي
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {avgDailyProfit.toFixed(0)} ج.م
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Analysis */}
+        <ProfitsAnalysis profitsData={filteredProfits} />
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100">
-                <Calendar className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="mr-4">
-                <p className="text-sm font-medium text-gray-600">عدد الأيام</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {dailyProfits.length}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Daily Profits Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  التاريخ
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  الإيرادات
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  التكاليف
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  صافي الربح
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  هامش الربح
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {dailyProfits.map((day, index) => {
-                const profitMargin = ((day.profit / day.revenue) * 100).toFixed(
-                  1
-                );
-                return (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {new Date(day.date).toLocaleDateString("ar-EG")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {day.revenue.toLocaleString()} ج.م
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {day.costs.toLocaleString()} ج.م
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      {day.profit.toLocaleString()} ج.م
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {profitMargin}%
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {/* Table */}
+        <ProfitsTable
+          profitsData={filteredProfits}
+          onCalculateProfit={handleCalculateProfit}
+        />
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ import { DeliveryItemModule } from "./4-Application/11-DeliveryItemApp/deliveryI
 import { ExpenseModule } from "./4-Application/12-ExpenseApp/expense.module";
 import { OrderModule } from "./4-Application/6-OrderApp/order.module";
 import { OrderItemModule } from "./4-Application/8-OrderItemApp/orderItem.module";
+import { DailyProfitModule } from "./4-Application/23-DailyProfitApp/dailyProfit.Module";
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { OrderItemModule } from "./4-Application/8-OrderItemApp/orderItem.module
     ExpenseModule,
     OrderModule,
     OrderItemModule,
+    DailyProfitModule,
   ],
   controllers: [AppController],
   providers: [AppService, BcryptService],

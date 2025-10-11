@@ -13,3 +13,4 @@ export * from "./customer-payment.entity";
 export * from "./supplier-payment.entity";
 export * from "./staff-payment.entity";
 export * from "./expense.entity";
+export * from "./dailyProfit.entity";

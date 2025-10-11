@@ -9,6 +9,7 @@ export * from "./orderItem.repository";
 export * from "./payment.repository";
 export * from "./supplier.repository";
 export * from "./expense.repository";
+export * from "./dailyProfit.repository";
 export * from "../soft.repository";
 export * from "../base.repository";
 
@@ -25,3 +26,4 @@ export { SupplierRepo } from "./supplier.repository";
 export { DeliveryRepo } from "./delivery.repository";
 export { DeliveryItemRepo } from "./deliveryItem.repository";
 export { ExpenseRepo } from "./expense.repository";
+export { DailyProfitRepo } from "./dailyProfit.repository";
