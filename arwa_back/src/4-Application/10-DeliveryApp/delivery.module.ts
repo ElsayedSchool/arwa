@@ -8,6 +8,7 @@ import { UpdateDeliveryItemRestAmountsHandler } from "./Commands/updateDeliveryI
 import { DeleteDeliveryHandler } from "./Commands/deleteDelivery.Handler";
 import { CreatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
 import { UpdatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
+import { CarryOverStockToNextDayHandler } from "./Commands/carryOverStockToNextDay.Handler";
 import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.module";
 
 @Module({
@@ -22,6 +23,7 @@ import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.m
     DeleteDeliveryHandler,
     CreatePaymentDeliveryHandler,
     UpdatePaymentDeliveryHandler,
+    CarryOverStockToNextDayHandler,
   ],
   exports: [
     GetAllDeliveryHandler,
@@ -32,6 +34,7 @@ import { RepositoryModule } from "src/3-Infrastructure/Repositories/repository.m
     DeleteDeliveryHandler,
     CreatePaymentDeliveryHandler,
     UpdatePaymentDeliveryHandler,
+    CarryOverStockToNextDayHandler,
   ],
 })
 export class DeliveryModule {}

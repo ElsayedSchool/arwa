@@ -12,6 +12,7 @@ export interface CategoryDto {
   name: string;
   isBase?: boolean;
   category?: string | null;
+  categoryType?: number;
 }
 
 export interface DeliveryDto {

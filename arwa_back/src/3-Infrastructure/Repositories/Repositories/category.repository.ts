@@ -11,7 +11,12 @@ import { Repository } from "typeorm";
 import { Logger } from "winston";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ICategoryRepo extends IBaseRepository<Category> {}
+export interface ICategoryRepo extends IBaseRepository<Category> {
+  findByIdWithRelations(
+    id: number,
+    relations: string[]
+  ): Promise<Category | null>;
+}
 
 export class CategoryRepo
   extends BaseRepository<Category>
@@ -58,6 +63,21 @@ export class CategoryRepo
       .orderBy("category.name", "ASC")
       .addOrderBy("sub.name", "ASC")
       .getMany();
+  }
+
+  async findByIdWithRelations(
+    id: number,
+    relations: string[] = []
+  ): Promise<Category | null> {
+    try {
+      return await this.db.findOne({
+        where: { id, isDeleted: false },
+        relations: relations,
+      });
+    } catch (err) {
+      this.log.error(err);
+      throw new InternalServerErrorException("حدث خطا اثناء استرجاع البيانات");
+    }
   }
 
   /**

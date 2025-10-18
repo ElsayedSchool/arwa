@@ -141,4 +141,153 @@ export class UpdateStockService {
       throw error;
     }
   }
+
+  async carryOverStockToNextDay(): Promise<Delivery | null> {
+    try {
+      this.log.info("Starting carry over stock to next day process");
+
+      // Get today's date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Find the stock supplier
+      const stockSuppliers = await this.supplierRepo.findAllAsync({
+        where: { isStock: true },
+      });
+
+      if (!stockSuppliers || stockSuppliers.length === 0) {
+        this.log.error(
+          "Stock supplier not found. Please ensure seeding has been completed."
+        );
+        return null;
+      }
+
+      const stockSupplier = stockSuppliers[0];
+
+      // Get all deliveries from today
+      const todaysDeliveries = await this.deliveryRepo.findAllAsync({
+        where: {
+          deliveryDate: {
+            $gte: today,
+            $lt: tomorrow,
+          } as any,
+        },
+        relations: ["deliveryItems"],
+      });
+
+      if (!todaysDeliveries || todaysDeliveries.length === 0) {
+        this.log.info(
+          "No deliveries found for today. Skipping stock carry over."
+        );
+        return null;
+      }
+
+      // Aggregate remaining stock by fish type
+      const aggregatedStock = new Map<
+        number,
+        {
+          fishTypeId: number;
+          fishTypeName: string;
+          totalStock: number;
+          totalValue: number;
+          averagePricePerKilo: number;
+        }
+      >();
+
+      for (const delivery of todaysDeliveries) {
+        for (const item of delivery.deliveryItems) {
+          if (item.restAmount > 0) {
+            const existing = aggregatedStock.get(item.fishTypeId) || {
+              fishTypeId: item.fishTypeId,
+              fishTypeName: item.fishTypeName,
+              totalStock: 0,
+              totalValue: 0,
+              averagePricePerKilo: item.pricePerKilo,
+            };
+
+            existing.totalStock += item.restAmount;
+            existing.totalValue += item.restAmount * item.pricePerKilo;
+
+            // Calculate weighted average price
+            if (existing.totalStock > 0) {
+              existing.averagePricePerKilo =
+                existing.totalValue / existing.totalStock;
+            }
+
+            aggregatedStock.set(item.fishTypeId, existing);
+          }
+        }
+      }
+
+      if (aggregatedStock.size === 0) {
+        this.log.info(
+          "No remaining stock found from today's deliveries. Skipping stock carry over."
+        );
+        return null;
+      }
+
+      // Create new delivery for tomorrow
+      const newDelivery = new Delivery();
+      newDelivery.supplierId = stockSupplier.id;
+      newDelivery.supplier = stockSupplier;
+      newDelivery.supplierName = stockSupplier.name;
+      newDelivery.isPayment = false;
+      newDelivery.driverName = "نظام المخزون التلقائي";
+      newDelivery.receivedByName = "نظام المخزون التلقائي";
+      newDelivery.totalDeliveryPrice = 0;
+      newDelivery.totalDebt = 0;
+      newDelivery.totalPaidDelivery = 0;
+      newDelivery.discount = 0;
+      newDelivery.updatedDebt = 0;
+      newDelivery.soldAmount = 0;
+      newDelivery.totalSoldPrice = 0;
+      newDelivery.deliveryDate = tomorrow;
+
+      const savedDelivery = await this.deliveryRepo.saveAsync(newDelivery);
+
+      // Create aggregated delivery items
+      const deliveryItems: DeliveryItem[] = [];
+      let totalPrice = 0;
+
+      for (const [fishTypeId, data] of aggregatedStock) {
+        const deliveryItem = new DeliveryItem();
+        deliveryItem.deliveryId = savedDelivery.id;
+        deliveryItem.delivery = savedDelivery;
+        deliveryItem.fishTypeId = fishTypeId;
+        deliveryItem.fishTypeName = data.fishTypeName;
+        deliveryItem.amount = data.totalStock;
+        deliveryItem.pricePerKilo = data.averagePricePerKilo;
+        deliveryItem.totalPrice = data.totalStock * data.averagePricePerKilo;
+        deliveryItem.soldAmount = 0;
+        deliveryItem.restAmount = data.totalStock;
+        deliveryItem.stock = data.totalStock;
+
+        deliveryItems.push(deliveryItem);
+        totalPrice += deliveryItem.totalPrice;
+      }
+
+      await this.deliveryItemRepo.saveManyAsync(deliveryItems);
+
+      // Update delivery totals
+      savedDelivery.totalDeliveryPrice = totalPrice;
+      await this.deliveryRepo.saveAsync(savedDelivery);
+
+      // Fetch the complete delivery with items
+      const completeDelivery = await this.deliveryRepo.findOneActive({
+        where: { id: savedDelivery.id },
+        relations: ["deliveryItems"],
+      });
+
+      this.log.info(
+        `Stock carry over completed successfully with ${deliveryItems.length} items and total value: ${totalPrice}`
+      );
+
+      return completeDelivery;
+    } catch (error) {
+      this.log.error("Error occurred during stock carry over", error);
+      throw error;
+    }
+  }
 }

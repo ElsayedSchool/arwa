@@ -14,8 +14,12 @@ import { GetByIdDeliveryHandler } from "./Queries/getByIdDelivery.Handler";
 import { UpsertDeliveryHandler } from "./Commands/upsertDelivery.Handler";
 import { UpdateDeliveryItemRestAmountsHandler } from "./Commands/updateDeliveryItemRestAmounts.Handler";
 import { DeleteDeliveryHandler } from "./Commands/deleteDelivery.Handler";
-import { CreatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
-import { UpdatePaymentDeliveryHandler } from "./Commands/createPaymentDelivery.Handler";
+import {
+  CreatePaymentDeliveryHandler,
+  UpdatePaymentDeliveryHandler,
+} from "./Commands/createPaymentDelivery.Handler";
+import { CarryOverStockToNextDayHandler } from "./Commands/carryOverStockToNextDay.Handler";
+import { CarryOverStockToNextDayCommand } from "./Commands/carryOverStockToNextDay.Command";
 import { UpsertDeliveryCommand } from "./Commands/upsertDelivery.Command";
 import { UpdateDeliveryItemRestAmountsCommand } from "./Commands/updateDeliveryItemRestAmounts.Command";
 import { DeleteDeliveryCommand } from "./Commands/deleteDelivery.Command";
@@ -32,7 +36,8 @@ export class DeliveryController {
     private readonly updateRestAmounts: UpdateDeliveryItemRestAmountsHandler,
     private readonly del: DeleteDeliveryHandler,
     private readonly createPayment: CreatePaymentDeliveryHandler,
-    private readonly updatePayment: UpdatePaymentDeliveryHandler
+    private readonly updatePayment: UpdatePaymentDeliveryHandler,
+    private readonly carryOverStock: CarryOverStockToNextDayHandler
   ) {}
 
   @Get()
@@ -120,8 +125,8 @@ export class DeliveryController {
     );
   }
 
-  @Delete(":id")
-  async remove(@Param("id") id: string) {
-    return this.del.execute(new DeleteDeliveryCommand(id));
+  @Post("carry-over-stock")
+  async carryOverStockToNextDay() {
+    return this.carryOverStock.execute(new CarryOverStockToNextDayCommand());
   }
 }

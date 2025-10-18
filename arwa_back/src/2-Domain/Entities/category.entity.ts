@@ -19,7 +19,6 @@ export class Category extends BaseDelete {
   id: number;
 
   @Column({ length: 30 })
-  @Index({ unique: true })
   name: string;
 
   @Column({ nullable: false, default: true })

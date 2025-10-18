@@ -15,14 +15,15 @@ interface EditCategoryModalProps {
     mainCategoryId?: number;
     character?: string | null;
     color?: string | null;
+    categoryType?: number;
   } | null;
 }
 
 interface FormData {
   name: string;
-  description: string;
   character: string;
   color: string;
+  categoryType: number;
 }
 
 export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
@@ -33,9 +34,9 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    description: "",
     character: "",
     color: "#3B82F6",
+    categoryType: 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -56,14 +57,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     if (editingItem) {
       setFormData({
         name: editingItem.name || "",
-        description: editingItem.description || "",
         character: editingItem.character || "",
         color: editingItem.color || "#3B82F6",
+        categoryType: editingItem.categoryType || 1,
       });
     }
   }, [editingItem]);
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -77,15 +78,11 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
       newErrors.name = "اسم الفئة مطلوب";
     }
 
-    if (editingItem?.type === "main" && !formData.description.trim()) {
-      newErrors.description = "وصف الفئة مطلوب";
-    }
-
     if (editingItem?.type === "sub") {
       if (!formData.character.trim()) {
         newErrors.character = "الرمز مطلوب";
-      } else if (formData.character.length !== 1) {
-        newErrors.character = "الرمز يجب أن يكون حرف واحد فقط";
+      } else if (formData.character.length > 3) {
+        newErrors.character = "الرمز يجب أن لا يزيد عن 3 أحرف";
       }
     }
 
@@ -134,21 +131,22 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
           error={errors.name}
         />
 
-        {editingItem.type === "main" && (
+        {editingItem.type !== "sub" && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              وصف الفئة
+              نوع الفئة
             </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="وصف مختصر للفئة..."
-              rows={3}
+            <select
+              value={formData.categoryType}
+              onChange={(e) =>
+                handleInputChange("categoryType", parseInt(e.target.value))
+              }
               className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            {errors.description && (
-              <p className="text-sm text-red-600">{errors.description}</p>
-            )}
+            >
+              <option value={1}>بلطى</option>
+              <option value={2}>ابيض</option>
+              <option value={3}>مجمدات وبحر</option>
+            </select>
           </div>
         )}
 
@@ -158,10 +156,10 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
               label="الرمز المميز"
               value={formData.character}
               onChange={(e) =>
-                handleInputChange("character", e.target.value.slice(0, 1))
+                handleInputChange("character", e.target.value.slice(0, 3))
               }
-              placeholder="حرف واحد فقط"
-              maxLength={1}
+              placeholder="حتى 3 أحرف"
+              maxLength={3}
               error={errors.character}
             />
 

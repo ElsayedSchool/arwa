@@ -77,7 +77,10 @@ const CustomerDebtsPage = lazy(
   () => import("./components/customer-debts/CustomerDebtsPage.tsx")
 );
 const InventoryMovementPage = lazy(
-  () => import("./components/inventory-movement/InventoryMovementPage.tsx")
+  () =>
+    import(
+      "./components/inventory-movement/components/InventoryManagementPage.tsx"
+    )
 );
 const SettingsPage = lazy(
   () => import("./components/settings/SettingsPage.tsx")

@@ -13,7 +13,6 @@ import { EditCategoryModal } from "./modals/EditCategoryModal";
 import { TopNavigation } from "../common/TopNavigation";
 import {
   isNewMainCategory,
-  isNewSubCategory,
   isUpdateMainCategory,
   isUpdateSubCategory,
 } from "../../utils/typeGuards";
@@ -26,11 +25,11 @@ type SubCategory = CategoryDTO["subcategories"][number];
 interface EditingItem {
   id: number;
   name: string;
-  description?: string;
   type: "main" | "sub";
   mainCategoryId?: number;
   character?: string | null;
   color?: string | null;
+  categoryType?: number;
 }
 
 const CategoriesPage: React.FC = () => {
@@ -98,22 +97,28 @@ const CategoriesPage: React.FC = () => {
     subcategory: SubCategory,
     mainCategoryId: number
   ) => {
-    setEditingItem({ ...subcategory, type: "sub", mainCategoryId });
+    const mainCategory = categories.find((c) => c.id === mainCategoryId);
+    setEditingItem({
+      ...subcategory,
+      type: "sub",
+      mainCategoryId,
+      categoryType: mainCategory?.categoryType,
+    });
     setShowEditModal(true);
   };
 
   const handleDeleteMainCategory = async (categoryId: number) => {
-    const sure = confirm(
-      "هل أنت متأكد من حذف هذه الفئة الرئيسية وجميع الفئات الفرعية؟"
-    );
+    const sure = confirm("هل أنت متأكد من حذف هذه الفئة الرئيسية؟");
     if (!sure) return;
     try {
-      const ok = await removeCategory(categoryId);
-      if (!ok) {
-        alert("غير مصرح بحذف الفئة أو حدث خطأ.");
-      }
-    } catch {
-      alert("خطأ أثناء حذف الفئة");
+      await removeCategory(categoryId);
+      // If successful, the store will refetch automatically
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "خطأ أثناء حذف الفئة";
+      alert(errorMessage);
     }
   };
 
@@ -134,19 +139,36 @@ const CategoriesPage: React.FC = () => {
   };
 
   const handleSaveCategory = (categoryData: unknown) => {
-    if (modalType === "main" && isNewMainCategory(categoryData)) {
-      upsert({ name: categoryData.name, description: categoryData.description })
+    const data = categoryData as {
+      name: string;
+      categoryType: number;
+      character?: string;
+      color?: string;
+    };
+    if (modalType === "main" && isNewMainCategory(data)) {
+      upsert({ name: data.name, categoryType: data.categoryType })
         .then((ok) => {
           if (!ok) setError("غير مصرح بإضافة الفئة أو حدث خطأ.");
         })
         .catch(() => setError("غير مصرح بإضافة الفئة أو حدث خطأ."));
-    } else if (modalType === "sub" && isNewSubCategory(categoryData)) {
+    } else if (
+      modalType === "sub" &&
+      data.name &&
+      data.character &&
+      data.color &&
+      data.categoryType
+    ) {
+      const mainCategory = categories.find(
+        (c) => c.id === selectedMainCategory
+      );
+      if (!mainCategory) return;
       upsert({
-        name: categoryData.name,
+        name: data.name,
         type: "sub",
         mainCategoryId: selectedMainCategory as number,
-        character: categoryData.character,
-        color: categoryData.color,
+        character: data.character,
+        color: data.color,
+        categoryType: data.categoryType,
       })
         .then((ok) => {
           if (!ok) setError("غير مصرح بإضافة الفئة الفرعية أو حدث خطأ.");
@@ -157,26 +179,36 @@ const CategoriesPage: React.FC = () => {
   };
 
   const handleUpdateCategory = (updatedData: unknown) => {
+    const data = updatedData as {
+      name: string;
+      categoryType: number;
+      character?: string;
+      color?: string;
+    };
     if (!editingItem) return;
 
     let payload: Record<string, unknown> = {
       id: editingItem.id,
     };
 
-    if (editingItem.type === "main" && isUpdateMainCategory(updatedData)) {
+    if (editingItem.type === "main" && isUpdateMainCategory(data)) {
       payload = {
         ...payload,
-        name: updatedData.name,
-        description: updatedData.description,
+        name: data.name,
+        categoryType: data.categoryType,
       };
-    } else if (editingItem.type === "sub" && isUpdateSubCategory(updatedData)) {
+    } else if (editingItem.type === "sub" && isUpdateSubCategory(data)) {
+      const mainCategory = categories.find(
+        (c) => c.id === editingItem.mainCategoryId
+      );
       payload = {
         ...payload,
-        name: updatedData.name,
+        name: data.name,
         type: "sub",
         mainCategoryId: editingItem.mainCategoryId,
-        character: updatedData.character,
-        color: updatedData.color,
+        character: data.character,
+        color: data.color,
+        categoryType: mainCategory?.categoryType || 1,
       };
     }
 
@@ -198,7 +230,9 @@ const CategoriesPage: React.FC = () => {
           <TopNavigation currentPage="categories" />
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">العملاء</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                انواع الاسماك
+              </h1>
               <p className="text-gray-600 mt-2">
                 إضافة وتعديل فئات المنتجات والفئات الفرعية
               </p>
@@ -250,7 +284,6 @@ const CategoriesPage: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {category.name}
                         </h3>
-                        <p className="text-gray-600">{category.description}</p>
                         <span className="text-sm text-gray-500">
                           {category.productCount} منتج •{" "}
                           {category.subcategories.length} فئة فرعية
@@ -354,6 +387,12 @@ const CategoriesPage: React.FC = () => {
             selectedMainCategory
               ? categories.find((c) => c.id === selectedMainCategory)?.name
               : ""
+          }
+          mainCategoryType={
+            selectedMainCategory
+              ? categories.find((c) => c.id === selectedMainCategory)
+                  ?.categoryType
+              : undefined
           }
         />
 

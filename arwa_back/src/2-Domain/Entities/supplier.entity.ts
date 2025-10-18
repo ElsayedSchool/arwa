@@ -19,7 +19,7 @@ export class Supplier extends BaseDelete {
   @Column({ length: 100 })
   name: string;
 
-  @Column({ length: 30 })
+  @Column({ length: 30, default: "" })
   nickName: string;
 
   @Column({ length: 11 })

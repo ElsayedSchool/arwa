@@ -1,4 +1,4 @@
-import { IsNotEmpty, MaxLength, MinLength } from "class-validator";
+import { IsNotEmpty, MaxLength, MinLength, IsIn } from "class-validator";
 import { IsNumberKey } from "src/4-Application/20-Common";
 
 export class UpsertCategoryCommand {
@@ -12,6 +12,13 @@ export class UpsertCategoryCommand {
 
   // optional fields for main category
   description?: string;
+
+  @IsNotEmpty({ message: "يجب ارسال نوع الفئة" })
+  @IsIn([1, 2, 3], {
+    message:
+      "نوع الفئة يجب ان يكون واحد من: 1 (بلطى), 2 (ابيض), 3 (مجمدات وبحر)",
+  })
+  categoryType: number;
 
   // when creating/editing subcategory
   type?: "main" | "sub";

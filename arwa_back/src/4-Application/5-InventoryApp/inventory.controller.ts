@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Body, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Delete,
+  Query,
+} from "@nestjs/common";
 import { GetAllInventoryHandler } from "./Queries/getAllInventory.Handler";
 import { GetByIdInventoryHandler } from "./Queries/getByIdInventory.Handler";
 import { UpsertInventoryHandler } from "./Commands/upsertInventory.Handler";

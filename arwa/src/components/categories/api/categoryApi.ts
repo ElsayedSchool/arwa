@@ -3,10 +3,10 @@ import api from "../../../services/api";
 export interface CategoryDTO {
   id: number;
   name: string;
-  description?: string;
   character?: string | null;
   color?: string | null;
   productCount: number;
+  categoryType?: number;
   subcategories: Array<{
     id: number;
     name: string;
@@ -19,7 +19,7 @@ export interface CategoryDTO {
 export type UpsertMainCategoryPayload = {
   id?: number;
   name: string;
-  description?: string;
+  categoryType: number;
 };
 
 export type UpsertSubCategoryPayload = {
@@ -29,6 +29,7 @@ export type UpsertSubCategoryPayload = {
   mainCategoryId: number;
   character?: string | null;
   color?: string | null;
+  categoryType: number;
 };
 
 export type UpsertCategoryPayload =

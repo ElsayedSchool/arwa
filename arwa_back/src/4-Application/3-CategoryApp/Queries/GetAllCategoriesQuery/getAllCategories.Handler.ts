@@ -14,6 +14,7 @@ export class GetAllCategoriesQueryHandler {
       description: c.description,
       character: c.character || null,
       color: c.color || null,
+      categoryType: c.catgeory, // Note: catgeory is the field name in the entity
       // productCount for main category is the count of its subcategories
       productCount: (c.subcategories || []).length,
       // include subcategories shaped with productCount defaulting to 0

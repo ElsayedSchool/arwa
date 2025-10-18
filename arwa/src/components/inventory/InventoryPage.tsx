@@ -315,12 +315,190 @@ const InventoryPage: React.FC = () => {
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      const ExcelJS = await import("exceljs");
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Inventory Data");
+
+      // Set column headers
+      worksheet.columns = [
+        { header: "التاريخ", key: "date", width: 15 },
+        { header: "اسم المورد", key: "supplier", width: 20 },
+        { header: "إجمالي الوزن", key: "totalWeight", width: 15 },
+        { header: "السائق", key: "driver", width: 15 },
+        { header: "نوع السمك", key: "fishType", width: 20 },
+        { header: "الوزن الإجمالي", key: "itemTotalWeight", width: 15 },
+        { header: "الوزن المباع", key: "soldWeight", width: 15 },
+        { header: "الوزن المتبقي", key: "restWeight", width: 15 },
+        { header: "الحالة", key: "status", width: 15 },
+      ];
+
+      // Style the header row
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFE6E6FA" },
+      };
+
+      // Sort data by date, then supplier, then delivery
+      const sortedData = [...filteredData].sort((a, b) => {
+        const dateA = new Date(a.deliveryDate);
+        const dateB = new Date(b.deliveryDate);
+
+        // First sort by date
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA.getTime() - dateB.getTime();
+        }
+
+        // Then by supplier name
+        const supplierCompare = a.supplierName.localeCompare(b.supplierName);
+        if (supplierCompare !== 0) {
+          return supplierCompare;
+        }
+
+        // Finally by delivery time
+        return a.deliveryTime.localeCompare(b.deliveryTime);
+      });
+
+      // Group by date and supplier
+      const groupedData = sortedData.reduce((groups, delivery) => {
+        const date = delivery.deliveryDate;
+        const supplier = delivery.supplierName;
+
+        if (!groups[date]) {
+          groups[date] = {};
+        }
+        if (!groups[date][supplier]) {
+          groups[date][supplier] = [];
+        }
+        groups[date][supplier].push(delivery);
+        return groups;
+      }, {} as Record<string, Record<string, typeof sortedData>>);
+
+      // Process grouped data
+      Object.keys(groupedData)
+        .sort()
+        .forEach((date) => {
+          const suppliersForDate = groupedData[date];
+
+          Object.keys(suppliersForDate)
+            .sort()
+            .forEach((supplier) => {
+              const deliveries = suppliersForDate[supplier];
+
+              // Calculate total weight for all deliveries from this supplier on this date
+              const totalSupplierWeight = deliveries.reduce(
+                (sum, delivery) => sum + (delivery.totalWeight || 0),
+                0
+              );
+
+              // Add main row for supplier/date combination
+              const mainRow = worksheet.addRow({
+                date: new Date(date).toLocaleDateString("ar-EG"),
+                supplier: supplier,
+                totalWeight: totalSupplierWeight,
+                driver: "",
+                fishType: "",
+                itemTotalWeight: "",
+                soldWeight: "",
+                restWeight: "",
+                status: "",
+              });
+
+              // Style the main row
+              mainRow.font = { bold: true };
+              mainRow.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFF0F8FF" },
+              };
+
+              // Add sub-rows for each delivery
+              deliveries.forEach((delivery) => {
+                // Add delivery header row
+                const deliveryRow = worksheet.addRow({
+                  date: "",
+                  supplier: "",
+                  totalWeight: "",
+                  driver: delivery.driverName || "غير محدد",
+                  fishType: `توصيل - ${delivery.deliveryTime}`,
+                  itemTotalWeight: delivery.totalWeight || 0,
+                  soldWeight: "",
+                  restWeight: "",
+                  status: "",
+                });
+
+                // Style delivery row
+                deliveryRow.fill = {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFF5F5F5" },
+                };
+
+                // Add rows for each fish type in the delivery
+                delivery.fishTypes?.forEach((fishType) => {
+                  const soldWeight =
+                    (fishType.weight || 0) - (fishType.quantity || 0);
+                  const restWeight = fishType.quantity || 0;
+
+                  worksheet.addRow({
+                    date: "",
+                    supplier: "",
+                    totalWeight: "",
+                    driver: "",
+                    fishType: fishType.type,
+                    itemTotalWeight: fishType.weight || 0,
+                    soldWeight: soldWeight,
+                    restWeight: restWeight,
+                    status: restWeight > 0 ? "متاح" : "مباع بالكامل",
+                  });
+                });
+              });
+
+              // Add empty row for separation
+              worksheet.addRow({});
+            });
+        });
+
+      // Generate filename with current date
+      const now = new Date();
+      const filename = `inventory_export_${now.getFullYear()}${(
+        now.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}.xlsx`;
+
+      // Save the file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("حدث خطأ أثناء تصدير البيانات");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <TopNavigation />
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">المخزون</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            تسجيل واردات المزارع
+          </h1>
           <Button
             onClick={() => {
               setIsEditMode(false);
@@ -352,7 +530,7 @@ const InventoryPage: React.FC = () => {
           supplierNames={[]}
           baseTypeNames={[]}
           subtypeNames={[]}
-          onExportData={() => {}}
+          onExportData={handleExportData}
           onClearFilters={handleClearFilters}
           unpricedOnly={false}
           onUnpricedOnlyChange={() => {}}

@@ -20,6 +20,7 @@ export class UpsertCategoryCommandHandler {
       }
       cat.name = category.name;
       if (category.description) cat.description = category.description;
+      cat.catgeory = category.categoryType;
       if (!cat.subcategories) cat.subcategories = [];
       return await this.cateoryRepo.saveCategoryAsync(cat);
     }
@@ -37,6 +38,7 @@ export class UpsertCategoryCommandHandler {
         sub.name = category.name;
         sub.character = category.character || sub.character;
         sub.color = category.color || sub.color;
+        sub.catgeory = category.categoryType;
         // ensure it's marked as subcategory
         sub.isBase = false;
         sub.mainCategoryId = category.mainCategoryId as number;
@@ -48,6 +50,7 @@ export class UpsertCategoryCommandHandler {
       newSub.name = category.name;
       newSub.character = category.character || null;
       newSub.color = category.color || null;
+      newSub.catgeory = category.categoryType;
       newSub.isBase = false;
       newSub.mainCategoryId = category.mainCategoryId as number;
       return await this.cateoryRepo.saveCategoryAsync(newSub);

@@ -1,14 +1,10 @@
 // Type guards for API payloads
-export const isNewMainCategory = (
-  data: unknown
-): data is { name: string; description?: string } => {
+export const isNewMainCategory = (data: unknown): data is { name: string } => {
   return (
     typeof data === "object" &&
     data !== null &&
     "name" in data &&
-    typeof (data as Record<string, unknown>).name === "string" &&
-    (!(data as Record<string, unknown>).description ||
-      typeof (data as Record<string, unknown>).description === "string")
+    typeof (data as Record<string, unknown>).name === "string"
   );
 };
 
@@ -36,7 +32,7 @@ export const isNewSubCategory = (
 
 export const isUpdateMainCategory = (
   data: unknown
-): data is { name: string; description?: string } => {
+): data is { name: string } => {
   return isNewMainCategory(data); // Same validation logic
 };
 
