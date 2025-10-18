@@ -12,15 +12,20 @@ export class UpsertCustomerCommandHandler {
 
     if (command.id && command.id.trim()) {
       // Update existing customer
-      customer = await this.customerRepo.findOneActive({ where: { id: command.id } });
+      customer = await this.customerRepo.findOneActive({
+        where: { id: command.id },
+      });
       if (!customer) {
         throw new Error(`Customer with id ${command.id} not found`);
       }
 
       // Update fields if provided
-      if (command.name !== undefined && command.name !== null) customer.name = command.name;
-      if (command.nickname !== undefined && command.nickname !== null) customer.nickname = command.nickname;
-      if (command.phoneNumber !== undefined && command.phoneNumber !== null) customer.phoneNumber = command.phoneNumber;
+      if (command.name !== undefined && command.name !== null)
+        customer.name = command.name;
+      if (command.nickname !== undefined && command.nickname !== null)
+        customer.nickname = command.nickname;
+      if (command.phoneNumber !== undefined && command.phoneNumber !== null)
+        customer.phoneNumber = command.phoneNumber;
     } else {
       // Create new customer
       customer = this.customerRepo.getRaw().create({
